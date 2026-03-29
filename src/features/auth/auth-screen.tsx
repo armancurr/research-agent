@@ -8,13 +8,6 @@ import { toast } from "sonner";
 import { AppHeader } from "@/components/shared/app-header";
 import { AppShell } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getErrorMessage } from "@/lib/get-error-message";
@@ -53,77 +46,104 @@ export function AuthScreen() {
     }
   }
 
+  const fieldClass =
+    "h-10 rounded-md bg-card text-[15px] placeholder:text-muted-foreground/70";
+
   return (
-    <>
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader showPrimaryNav={false} showSignOut={false} />
-      <AppShell className="items-center justify-center py-10">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>
-              {mode === "signIn" ? "Welcome back" : "Create your account"}
-            </CardTitle>
-            <CardDescription>
-              Sign in to create startups, persist runs, and review launch
-              packages.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  autoComplete="email"
-                  placeholder="founder@example.com"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete={
-                    mode === "signIn" ? "current-password" : "new-password"
-                  }
-                  placeholder="At least 8 characters"
-                  required
-                />
-              </div>
-              <Button
-                className="w-full"
-                size="lg"
-                type="submit"
-                disabled={isSubmitting || isLoading}
+      <AppShell className="flex flex-1 flex-col items-center justify-center px-4 py-10">
+        <div className="w-full max-w-[400px] space-y-10">
+          <div className="space-y-2 text-left">
+            <h1 className="text-balance text-2xl font-semibold tracking-tight text-foreground">
+              {mode === "signIn"
+                ? "Welcome to Research Agent"
+                : "Create your account"}
+            </h1>
+            <p className="text-[15px] text-muted-foreground">
+              {mode === "signIn"
+                ? "Structured brand research for founders."
+                : "Create your workspace."}
+            </p>
+          </div>
+
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-[13px] font-normal text-muted-foreground"
               >
-                {isSubmitting
-                  ? mode === "signIn"
-                    ? "Signing in..."
-                    : "Creating account..."
-                  : mode === "signIn"
-                    ? "Sign In"
-                    : "Create Account"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => {
-                  setMode((current) =>
-                    current === "signIn" ? "signUp" : "signIn",
-                  );
-                }}
+                Email
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                autoComplete="email"
+                placeholder="Your email address"
+                required
+                className={fieldClass}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="password"
+                className="text-[13px] font-normal text-muted-foreground"
               >
-                {mode === "signIn"
-                  ? "Need an account? Sign up"
-                  : "Already have an account? Sign in"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                Password
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete={
+                  mode === "signIn" ? "current-password" : "new-password"
+                }
+                placeholder="At least 8 characters"
+                required
+                className={fieldClass}
+              />
+            </div>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="h-10 w-full rounded-md text-[15px] font-medium"
+              type="submit"
+              disabled={isSubmitting || isLoading}
+            >
+              {isSubmitting
+                ? mode === "signIn"
+                  ? "Signing in…"
+                  : "Creating account…"
+                : "Continue"}
+            </Button>
+            <p className="text-left text-[13px] text-muted-foreground">
+              {mode === "signIn" ? (
+                <>
+                  Don&apos;t have an account?{" "}
+                  <button
+                    type="button"
+                    className="text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+                    onClick={() => setMode("signUp")}
+                  >
+                    Sign up
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    className="text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+                    onClick={() => setMode("signIn")}
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
+            </p>
+          </form>
+        </div>
       </AppShell>
-    </>
+    </div>
   );
 }

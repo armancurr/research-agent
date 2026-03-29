@@ -40,6 +40,16 @@ export function AppHeader({
     }
   }
 
+  const brandLink = (
+    <Link
+      href={showPrimaryNav ? "/startup" : "/"}
+      className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
+    >
+      <Globe size={18} weight="duotone" className="shrink-0 text-primary" />
+      Research Agent
+    </Link>
+  );
+
   return (
     <header
       className={cn(
@@ -50,17 +60,7 @@ export function AppHeader({
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         {showPrimaryNav ? (
           <>
-            <Link
-              href="/startup"
-              className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
-            >
-              <Globe
-                size={18}
-                weight="duotone"
-                className="shrink-0 text-primary"
-              />
-              Research Agent
-            </Link>
+            {brandLink}
             <Button
               variant="outline"
               size="sm"
@@ -72,7 +72,9 @@ export function AppHeader({
               New startup
             </Button>
           </>
-        ) : null}
+        ) : (
+          brandLink
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
