@@ -5,18 +5,13 @@ import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
-import { AppShell } from "@/components/shared/app-shell";
-import { UserNav } from "@/components/shared/user-nav";
-import { Button } from "@/components/ui/button";
-import { LaunchChatHeader } from "@/features/launch-chat/components/launch-chat-header";
+import { AppHeader } from "@/components/shared/app-header";
+import { LaunchChatHeaderActions } from "@/features/launch-chat/components/launch-chat-header-actions";
 import { ResearchSourcesGrid } from "@/features/launch-chat/components/research-sources-grid";
 import { RunArtifactsPanel } from "@/features/launch-chat/components/run-artifacts-panel";
-import { RunEventLog } from "@/features/launch-chat/components/run-event-log";
-import { RunExportActions } from "@/features/launch-chat/components/run-export-actions";
 import { StreamStatusBanner } from "@/features/launch-chat/components/stream-status-banner";
 import { SynthesisPanel } from "@/features/launch-chat/components/synthesis-panel";
 import { WorkflowTimeline } from "@/features/launch-chat/components/workflow-timeline";
-import { useAutoScroll } from "@/features/launch-chat/hooks/use-auto-scroll";
 import { useLaunchStream } from "@/features/launch-chat/hooks/use-launch-stream";
 import type { ResearchBucket } from "@/types/launch";
 
@@ -27,15 +22,12 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   const approveRun = useMutation(api.runs.approve);
   const rerunFromRun = useMutation(api.runs.rerunFromRun);
   const hasStartedRef = useRef(false);
-  const { bottomRef, maybeScrollToBottom } = useAutoScroll();
-  const { buckets, hydrate, isLive, phase, startStream, synthesis } =
-    useLaunchStream();
+  const { buckets, hydrate, phase, startStream, synthesis } = useLaunchStream();
 
   const persistedResearch = useMemo(() => {
     const artifact = runData?.artifacts.find(
       (entry) => entry.artifactType === "research",
     );
-
     return (artifact?.content as ResearchBucket[] | undefined) ?? [];
   }, [runData]);
 
@@ -43,15 +35,8 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     const artifact = runData?.artifacts.find(
       (entry) => entry.artifactType === "launch_package_markdown",
     );
-
-    if (!artifact) {
-      return "";
-    }
-
-    if (typeof artifact.markdown === "string") {
-      return artifact.markdown;
-    }
-
+    if (!artifact) return "";
+    if (typeof artifact.markdown === "string") return artifact.markdown;
     const value = artifact.content as { text?: string } | undefined;
     return value?.text ?? "";
   }, [runData]);
@@ -60,6 +45,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     ? buckets
     : new Map(persistedResearch.map((bucket) => [bucket.source, bucket]));
   const displayedSynthesis = synthesis || persistedSynthesis;
+
   const sourceStatuses = useMemo(() => {
     const result: Partial<
       Record<
@@ -67,38 +53,23 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
         "waiting" | "running" | "completed" | "failed"
       >
     > = {};
-
     runData?.runEvents.forEach((event) => {
-      if (!event.source) {
-        return;
-      }
-
-      if (event.kind === "source_started") {
-        result[event.source] = "running";
-      }
-
-      if (event.kind === "source_completed") {
-        result[event.source] = "completed";
-      }
-
-      if (event.kind === "source_failed") {
-        result[event.source] = "failed";
-      }
+      if (!event.source) return;
+      if (event.kind === "source_started") result[event.source] = "running";
+      if (event.kind === "source_completed") result[event.source] = "completed";
+      if (event.kind === "source_failed") result[event.source] = "failed";
     });
-
     return result;
   }, [runData]);
+
   const sourceMessages = useMemo(() => {
     const result: Partial<Record<ResearchBucket["source"], string>> = {};
-
     runData?.runEvents.forEach((event) => {
-      if (event.source && event.message) {
-        result[event.source] = event.message;
-      }
+      if (event.source && event.message) result[event.source] = event.message;
     });
-
     return result;
   }, [runData]);
+
   const displayedPhase =
     phase !== "idle"
       ? phase
@@ -109,10 +80,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
           : "idle";
 
   useEffect(() => {
-    if (!runData || hasStartedRef.current) {
-      return;
-    }
-
+    if (!runData || hasStartedRef.current) return;
     if (persistedResearch.length > 0 || persistedSynthesis) {
       hydrate({
         research: persistedResearch,
@@ -121,15 +89,12 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
       hasStartedRef.current = true;
       return;
     }
-
     if (
       runData.run.status === "queued" ||
       runData.run.status === "generating"
     ) {
       hasStartedRef.current = true;
-      void startStream({
-        runId: typedRunId,
-      });
+      void startStream({ runId: typedRunId });
     }
   }, [
     hydrate,
@@ -140,25 +105,14 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     typedRunId,
   ]);
 
-  useEffect(() => {
-    if (
-      displayedPhase === "idle" ||
-      displayedPhase === "done" ||
-      displayedPhase === "error"
-    ) {
-      return;
-    }
-
-    maybeScrollToBottom();
-    const id = setInterval(maybeScrollToBottom, 400);
-    return () => clearInterval(id);
-  }, [displayedPhase, maybeScrollToBottom]);
-
   if (runData === undefined) {
-    return <div className="min-h-screen bg-background" />;
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <AppHeader />
+        <div className="flex-1" />
+      </div>
+    );
   }
-
-  const brief = runData.run.briefSnapshot;
 
   async function handleApprove() {
     await approveRun({ runId: typedRunId });
@@ -170,45 +124,46 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   }
 
   return (
-    <AppShell className="pb-20 pt-6">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            Run Thread
-          </p>
-          <p className="text-sm text-muted-foreground">Saved run ID: {runId}</p>
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      <AppHeader
+        actions={
+          <LaunchChatHeaderActions
+            runStatus={runData.run.status}
+            onApprove={handleApprove}
+            onRerun={handleRerun}
+          />
+        }
+      />
+
+      <div className="flex min-h-0 flex-1 flex-col border-t border-border/30 lg:flex-row">
+        <div className="flex min-h-0 w-full flex-col overflow-hidden border-border/30 lg:w-1/2 lg:border-r">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-4">
+            <WorkflowTimeline stageRuns={runData.stageRuns} />
+            <ResearchSourcesGrid
+              buckets={displayedBuckets}
+              latestMessages={sourceMessages}
+              phase={displayedPhase}
+              sourceStatuses={sourceStatuses}
+            />
+            <RunArtifactsPanel artifacts={runData.artifacts} />
+            <StreamStatusBanner
+              bucketCount={displayedBuckets.size}
+              currentStage={runData.run.currentStage}
+              eventCount={runData.runEvents.length}
+              phase={displayedPhase}
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <UserNav />
-          <RunExportActions markdown={displayedSynthesis} runId={runId} />
-          {runData.run.status !== "generating" ? (
-            <Button variant="outline" onClick={handleRerun}>
-              Rerun Workflow
-            </Button>
-          ) : null}
-          {runData.run.status === "completed" ? (
-            <Button onClick={handleApprove}>Approve Final</Button>
-          ) : null}
+
+        <div className="flex min-h-0 w-full flex-col overflow-hidden border-t border-border/40 lg:w-1/2 lg:border-t-0">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-4">
+            <SynthesisPanel
+              phase={displayedPhase}
+              synthesis={displayedSynthesis}
+            />
+          </div>
         </div>
       </div>
-      <LaunchChatHeader brief={brief} isLive={isLive} phase={displayedPhase} />
-      <WorkflowTimeline stageRuns={runData.stageRuns} />
-      <RunEventLog events={runData.runEvents} />
-      <ResearchSourcesGrid
-        buckets={displayedBuckets}
-        latestMessages={sourceMessages}
-        phase={displayedPhase}
-        sourceStatuses={sourceStatuses}
-      />
-      <SynthesisPanel phase={displayedPhase} synthesis={displayedSynthesis} />
-      <RunArtifactsPanel artifacts={runData.artifacts} />
-      <StreamStatusBanner
-        bucketCount={displayedBuckets.size}
-        currentStage={runData.run.currentStage}
-        eventCount={runData.runEvents.length}
-        phase={displayedPhase}
-      />
-      <div ref={bottomRef} className="h-px" />
-    </AppShell>
+    </div>
   );
 }

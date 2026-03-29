@@ -7,6 +7,6 @@ export const initialStartupBrief: StartupBrief = {
   targetAudience: "",
   category: "",
   launchGoal: "",
-  fundingStage: "Pre-seed",
+  fundingStage: "",
   desiredOutcome: "",
 };

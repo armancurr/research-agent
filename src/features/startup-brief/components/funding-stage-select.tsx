@@ -15,13 +15,15 @@ export function FundingStageSelect({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const selected = value.trim() === "" ? undefined : value;
+
   return (
     <Select
-      onValueChange={(nextValue) => onChange(nextValue ?? "Pre-seed")}
-      value={value}
+      onValueChange={(nextValue) => onChange(nextValue ?? "")}
+      value={selected}
     >
       <SelectTrigger className="w-full min-w-0">
-        <SelectValue />
+        <SelectValue placeholder="Select funding stage" />
       </SelectTrigger>
       <SelectContent>
         {fundingStages.map((stage) => (

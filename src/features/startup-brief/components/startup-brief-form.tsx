@@ -30,28 +30,23 @@ export function StartupBriefForm({
         {SECTIONS_WITH_FIELDS.map((section) => (
           <div
             key={section.id}
-            id={`section-${section.id}`}
-            className="scroll-mt-20 space-y-10"
+            className="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2"
           >
-            {section.fields.map((field) => {
-              const isFilled = brief[field.key].trim().length > 0;
-
-              return (
+            {section.fields.map((field) => (
+              <div
+                key={field.key}
+                className={field.span === 2 ? "sm:col-span-2" : ""}
+              >
                 <FieldCard
-                  key={field.key}
                   id={`field-${field.key}`}
                   label={field.label}
                   hint={field.hint}
-                  stepNumber={field.stepNumber}
-                  isFilled={isFilled}
                   required={field.required}
-                  animationDelay={field.stepNumber * 60}
                 >
                   {field.type === "textarea" ? (
                     <Textarea
                       className="min-h-[100px]"
                       onChange={(e) => onFieldChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
                       required={field.required}
                       value={brief[field.key]}
                     />
@@ -63,26 +58,25 @@ export function StartupBriefForm({
                   ) : (
                     <Input
                       onChange={(e) => onFieldChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
                       required={field.required}
                       value={brief[field.key]}
                     />
                   )}
                 </FieldCard>
-              );
-            })}
+              </div>
+            ))}
           </div>
         ))}
       </div>
 
-      <div className="sticky bottom-0 flex justify-end border-t border-border/80 bg-background/95 py-4 backdrop-blur-sm">
+      <div className="sticky bottom-0 flex justify-end bg-background/95 py-4 backdrop-blur-sm">
         <Button
           size="lg"
           type="submit"
           className="gap-2 px-5"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Creating Run..." : "Generate Report"}
+          {isSubmitting ? "Starting research…" : "Get Started"}
           <ArrowRight size={16} weight="bold" />
         </Button>
       </div>

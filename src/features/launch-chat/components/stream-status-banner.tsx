@@ -19,13 +19,13 @@ export function StreamStatusBanner({
   return (
     <div className="flex items-center gap-2.5 rounded-lg border border-border/40 bg-card/20 px-4 py-3 text-sm text-muted-foreground/60">
       <Sparkle
-        size={14}
+        size={16}
         weight="fill"
         className="animate-pulse text-primary/40"
       />
       <span>
-        Stage: {currentStage ?? phase} • {bucketCount} source buckets visible •{" "}
-        {eventCount} logged events
+        Stage: {currentStage ?? phase} &middot; {bucketCount} source buckets
+        visible &middot; {eventCount} logged events
       </span>
     </div>
   );

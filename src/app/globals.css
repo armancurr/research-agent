@@ -160,6 +160,10 @@ textarea {
   animation: scan-shimmer 2s ease-in-out infinite;
 }
 
+.sidebar-transition {
+  transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

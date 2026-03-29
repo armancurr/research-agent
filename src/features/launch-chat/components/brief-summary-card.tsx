@@ -2,7 +2,7 @@ import type { StartupBrief } from "@/types/launch";
 
 export function BriefSummaryCard({ brief }: { brief: StartupBrief }) {
   return (
-    <div className="mt-4 rounded-lg border border-border/70 bg-gradient-to-br from-card/80 to-card/40 px-5 py-4">
+    <div className="mt-4 rounded-lg border border-border/70 bg-card/80 px-5 py-4">
       <h1 className="text-lg font-semibold tracking-tight text-foreground">
         {brief.productName}
       </h1>

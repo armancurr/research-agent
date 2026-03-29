@@ -1,5 +1,5 @@
 import { StartupsScreen } from "@/features/startups/startups-screen";
 
-export default function StartupsPage() {
+export default function StartupPage() {
   return <StartupsScreen />;
 }

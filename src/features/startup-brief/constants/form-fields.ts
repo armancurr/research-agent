@@ -9,11 +9,12 @@ export type FormSection = {
 export type FieldDef = {
   key: keyof StartupBrief;
   label: string;
-  placeholder: string;
   hint: string;
   section: string;
   type: "input" | "textarea" | "select";
   required: boolean;
+  /** 1 = half-width in the 2-col grid, 2 = full-width row */
+  span: 1 | 2;
 };
 
 export type IndexedFieldDef = FieldDef & { stepNumber: number };
@@ -30,74 +31,74 @@ const FORM_FIELDS: FieldDef[] = [
   {
     key: "companyName",
     label: "Company Name",
-    placeholder: "Acme Labs",
     hint: "The legal or brand name of your company",
     section: "identity",
     type: "input",
     required: true,
+    span: 1,
   },
   {
     key: "productName",
     label: "Product Name",
-    placeholder: "SignalPilot",
     hint: "What you call the product publicly",
     section: "identity",
     type: "input",
     required: true,
+    span: 1,
   },
   {
     key: "productDescription",
     label: "Product Description",
-    placeholder: "What it is and why it matters",
     hint: "A concise elevator pitch — what does it do and who cares?",
     section: "identity",
     type: "textarea",
     required: true,
+    span: 2,
   },
   {
     key: "targetAudience",
     label: "Target Audience",
-    placeholder: "Who it's for",
     hint: "Be specific — job title, persona, or community",
     section: "audience",
     type: "input",
     required: true,
+    span: 2,
   },
   {
     key: "category",
     label: "Category / Niche",
-    placeholder: "e.g. AI devtools",
     hint: "The market category or vertical you compete in",
     section: "audience",
     type: "input",
     required: true,
+    span: 1,
   },
   {
     key: "fundingStage",
     label: "Funding Stage",
-    placeholder: "",
     hint: "Helps calibrate the research depth and angles",
     section: "audience",
     type: "select",
     required: true,
+    span: 1,
   },
   {
     key: "desiredOutcome",
     label: "Desired Outcome",
-    placeholder: "What people should believe or do",
     hint: "The perception shift or action you want from your audience",
     section: "outcome",
     type: "input",
     required: false,
+    span: 1,
   },
   {
     key: "launchGoal",
     label: "Launch Goal",
-    placeholder: "What this launch should achieve",
     hint: "One clear metric or milestone this launch targets",
     section: "outcome",
     type: "input",
     required: false,
+    span: 1,
   },
 ];
 
