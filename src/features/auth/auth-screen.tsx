@@ -16,7 +16,7 @@ export function AuthScreen() {
   const router = useRouter();
   const { signIn } = useAuthActions();
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
+  const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {

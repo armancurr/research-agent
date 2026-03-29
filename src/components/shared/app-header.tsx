@@ -42,7 +42,7 @@ export function AppHeader({
 
   const brandLink = (
     <Link
-      href={showPrimaryNav ? "/startup" : "/"}
+      href={showPrimaryNav ? "/startup" : "/auth"}
       className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
     >
       <Globe size={18} weight="duotone" className="shrink-0 text-primary" />
