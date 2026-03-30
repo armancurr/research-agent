@@ -18,6 +18,21 @@ export function classifyLaunchError(error: unknown): ClassifiedLaunchError {
   const message = error instanceof Error ? error.message : "Unknown failure";
   const lower = message.toLowerCase();
 
+  if (
+    lower.includes("validation failed") ||
+    lower.includes("schema") ||
+    lower.includes("structured response") ||
+    lower.includes("shape")
+  ) {
+    return {
+      code: "PARSE",
+      internalMessage: message,
+      retryable: true,
+      userMessage:
+        "The model returned an invalid structured response. Retrying may help.",
+    };
+  }
+
   if (lower.includes("not authenticated") || lower.includes("unauthorized")) {
     return {
       code: "AUTH",

@@ -104,9 +104,8 @@ export function AuthScreen() {
               />
             </div>
             <Button
-              variant="secondary"
               size="lg"
-              className="h-10 w-full rounded-md text-[15px] font-medium"
+              className="h-10 w-full text-[15px] font-medium"
               type="submit"
               disabled={isSubmitting || isLoading}
             >

@@ -4,13 +4,11 @@ import type { IconProps } from "@phosphor-icons/react";
 import { CaretRight } from "@phosphor-icons/react";
 import type { ComponentType } from "react";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { StreamPhase } from "@/features/launch-chat/hooks/use-launch-stream";
 import { cn } from "@/lib/utils";
 import type { ResearchBucket } from "@/types/launch";
 
@@ -20,7 +18,6 @@ export function ResearchSourceCard({
   iconClassName,
   label,
   latestMessage,
-  phase,
   status,
 }: {
   bucket?: ResearchBucket;
@@ -28,12 +25,18 @@ export function ResearchSourceCard({
   iconClassName: string;
   label: string;
   latestMessage?: string;
-  phase: StreamPhase;
   status?: "waiting" | "running" | "completed" | "failed";
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const isLoading =
-    status === "running" || (!bucket && phase !== "done" && phase !== "error");
+
+  const formatInsightYear = (publishedDate?: string) => {
+    if (!publishedDate) {
+      return "";
+    }
+
+    const date = new Date(publishedDate);
+    return Number.isNaN(date.getTime()) ? "" : String(date.getFullYear());
+  };
 
   const hasFoldableDetails =
     bucket &&
@@ -42,17 +45,11 @@ export function ResearchSourceCard({
       (bucket.query && bucket.query.length > 0));
 
   return (
-    <div
-      className={cn(
-        "max-w-full overflow-hidden rounded-lg border transition-all duration-500",
-        bucket ? "border-border/70 bg-card/50" : "border-border/40 bg-card/20",
-        isLoading && "source-scanning",
-      )}
-    >
-      <div className="flex items-start gap-2.5 px-3 pt-2.5">
+    <div className="h-full max-w-full overflow-hidden border-b border-border/30 py-3 transition-all duration-500">
+      <div className="flex items-start gap-2.5 px-1">
         <div
           className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-md",
+            "flex size-8 shrink-0 items-center justify-center rounded-full",
             bucket ? "bg-muted/35" : "bg-muted/20",
           )}
         >
@@ -67,27 +64,15 @@ export function ResearchSourceCard({
             <span className="text-sm font-medium text-foreground/85">
               {label}
             </span>
-            <div className="flex shrink-0 items-center gap-2">
-              {status === "failed" ? (
-                <Badge
-                  variant="destructive"
-                  className="px-1.5 py-0 text-xs font-normal"
-                >
-                  failed
-                </Badge>
-              ) : isLoading ? (
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
-                  <span className="inline-block size-1.5 animate-pulse rounded-full bg-primary/50" />
-                  Scanning
-                </span>
-              ) : null}
-            </div>
+            {status === "failed" ? (
+              <span className="text-xs text-destructive/80">failed</span>
+            ) : null}
           </div>
-          {bucket?.query ? (
+          {bucket?.query && status !== "running" ? (
             <p className="mt-1 line-clamp-1 text-xs text-muted-foreground/70">
               {bucket.query}
             </p>
-          ) : latestMessage ? (
+          ) : latestMessage && status !== "running" ? (
             <p className="mt-1 line-clamp-1 text-xs text-muted-foreground/70">
               {latestMessage}
             </p>
@@ -96,9 +81,9 @@ export function ResearchSourceCard({
       </div>
 
       {hasFoldableDetails ? (
-        <div className="mt-4 border-t border-border/30 pt-1">
+        <div className="mt-3 pt-1">
           <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-            <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1.5 px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/20">
+            <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1.5 px-1 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:text-foreground/80">
               <CaretRight
                 size={10}
                 weight="bold"
@@ -110,7 +95,7 @@ export function ResearchSourceCard({
               {detailsOpen ? "Hide details" : "Activity & insights"}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="space-y-2.5 border-t border-border/20 px-3 pb-3 pt-2">
+              <div className="space-y-2.5 px-1 pb-1 pt-2">
                 {bucket.query ? (
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     <span className="font-medium text-foreground/80">
@@ -130,16 +115,40 @@ export function ResearchSourceCard({
                 {bucket.insights.length > 0 ? (
                   <div className="space-y-1.5">
                     {bucket.insights.map((insight) => (
-                      <p
-                        key={`${bucket.source}-${insight.signal}`}
-                        className="text-sm leading-relaxed text-foreground/70"
+                      <div
+                        key={`${bucket.source}-${insight.url}-${insight.signal}`}
+                        className="border-l border-border/40 pl-3 text-sm leading-relaxed text-foreground/70"
                       >
-                        <span className="font-medium text-foreground/85">
-                          {insight.signal}
-                        </span>
-                        {" — "}
-                        {insight.evidence}
-                      </p>
+                        <p>
+                          <span className="font-medium text-foreground/85">
+                            {insight.signal}
+                          </span>
+                          {" — "}
+                          {insight.evidence}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground/80">
+                          {insight.sourceTitle}
+                          {formatInsightYear(insight.publishedDate)
+                            ? ` • ${formatInsightYear(insight.publishedDate)}`
+                            : ""}
+                          {insight.engagementHint
+                            ? ` • ${insight.engagementHint}`
+                            : ""}
+                        </p>
+                        <p className="mt-1 text-xs italic text-muted-foreground/75">
+                          "{insight.quoteOrExcerpt}"
+                        </p>
+                        {insight.url ? (
+                          <a
+                            href={insight.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-block text-xs text-primary/80 hover:underline"
+                          >
+                            Open source
+                          </a>
+                        ) : null}
+                      </div>
                     ))}
                   </div>
                 ) : null}
@@ -148,7 +157,7 @@ export function ResearchSourceCard({
           </Collapsible>
         </div>
       ) : !bucket && latestMessage ? (
-        <div className="border-t border-border/30 px-3 py-2">
+        <div className="px-1 py-2">
           <p className="line-clamp-1 text-xs text-muted-foreground/70">
             {latestMessage}
           </p>
@@ -158,7 +167,7 @@ export function ResearchSourceCard({
       {bucket && bucket.results.length > 0 ? (
         <div
           className={cn(
-            "flex max-w-full flex-wrap gap-1.5 px-3 pb-2.5",
+            "flex max-w-full flex-wrap gap-1.5 px-1 pb-1",
             hasFoldableDetails ? "mt-3" : "mt-2",
           )}
         >
@@ -168,7 +177,7 @@ export function ResearchSourceCard({
               href={result.url}
               target="_blank"
               rel="noreferrer"
-              className="inline-block max-w-full truncate rounded border border-border/40 bg-muted/15 px-2 py-1 text-xs font-medium text-foreground/75 transition-colors hover:border-border hover:bg-muted/30 hover:text-foreground"
+              className="inline-block max-w-full truncate text-xs font-medium text-foreground/75 transition-colors hover:text-foreground hover:underline"
               title={result.title}
             >
               {result.title}

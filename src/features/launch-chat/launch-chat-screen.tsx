@@ -7,10 +7,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { AppHeader } from "@/components/shared/app-header";
 import { LaunchChatHeaderActions } from "@/features/launch-chat/components/launch-chat-header-actions";
+import { LaunchPackagePreviewCard } from "@/features/launch-chat/components/launch-package-preview-card";
 import { ResearchSourcesGrid } from "@/features/launch-chat/components/research-sources-grid";
 import { RunArtifactsPanel } from "@/features/launch-chat/components/run-artifacts-panel";
-import { StreamStatusBanner } from "@/features/launch-chat/components/stream-status-banner";
-import { SynthesisPanel } from "@/features/launch-chat/components/synthesis-panel";
+import { StartupBriefCard } from "@/features/launch-chat/components/startup-brief-card";
 import { WorkflowTimeline } from "@/features/launch-chat/components/workflow-timeline";
 import { useLaunchStream } from "@/features/launch-chat/hooks/use-launch-stream";
 import type { ResearchBucket } from "@/types/launch";
@@ -124,7 +124,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <AppHeader
         actions={
           <LaunchChatHeaderActions
@@ -135,32 +135,21 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
         }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col border-t border-border/30 lg:flex-row">
-        <div className="flex min-h-0 w-full flex-col overflow-hidden border-border/30 lg:w-1/2 lg:border-r">
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-4">
+      <div className="border-t border-border/30">
+        <div className="mx-auto w-full max-w-5xl px-5 py-5 sm:px-6 lg:px-8">
+          <StartupBriefCard brief={runData.run.briefSnapshot} />
+          <div className="space-y-6">
             <WorkflowTimeline stageRuns={runData.stageRuns} />
-            <ResearchSourcesGrid
-              buckets={displayedBuckets}
-              latestMessages={sourceMessages}
-              phase={displayedPhase}
-              sourceStatuses={sourceStatuses}
-            />
-            <RunArtifactsPanel artifacts={runData.artifacts} />
-            <StreamStatusBanner
-              bucketCount={displayedBuckets.size}
-              currentStage={runData.run.currentStage}
-              eventCount={runData.runEvents.length}
-              phase={displayedPhase}
-            />
-          </div>
-        </div>
-
-        <div className="flex min-h-0 w-full flex-col overflow-hidden border-t border-border/40 lg:w-1/2 lg:border-t-0">
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-4">
-            <SynthesisPanel
+            <LaunchPackagePreviewCard
               phase={displayedPhase}
               synthesis={displayedSynthesis}
             />
+            <ResearchSourcesGrid
+              buckets={displayedBuckets}
+              latestMessages={sourceMessages}
+              sourceStatuses={sourceStatuses}
+            />
+            <RunArtifactsPanel artifacts={runData.artifacts} />
           </div>
         </div>
       </div>

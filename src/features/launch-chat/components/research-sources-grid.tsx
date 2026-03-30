@@ -12,19 +12,16 @@ import {
   sourceMeta,
   sourceOrder,
 } from "@/features/launch-chat/constants/source-meta";
-import type { StreamPhase } from "@/features/launch-chat/hooks/use-launch-stream";
 import { cn } from "@/lib/utils";
 import type { ResearchBucket } from "@/types/launch";
 
 export function ResearchSourcesGrid({
   buckets,
   latestMessages,
-  phase,
   sourceStatuses,
 }: {
   buckets: Map<string, ResearchBucket>;
   latestMessages: Partial<Record<ResearchBucket["source"], string>>;
-  phase: StreamPhase;
   sourceStatuses: Partial<
     Record<
       ResearchBucket["source"],
@@ -48,16 +45,14 @@ export function ResearchSourcesGrid({
           />
           <MagnifyingGlass
             size={16}
-            weight="bold"
-            className="shrink-0 text-muted-foreground/60"
+            weight="fill"
+            className="shrink-0 text-[#e394dc]"
           />
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">
-            Sources
-          </h2>
+          <h2 className="text-sm font-medium text-foreground/85">Sources</h2>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
-          <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+          <div className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2">
             {sourceOrder.map((sourceKey) => {
               const meta = sourceMeta[sourceKey];
               return (
@@ -68,7 +63,6 @@ export function ResearchSourcesGrid({
                   iconClassName={meta.iconClassName}
                   label={meta.label}
                   latestMessage={latestMessages[sourceKey]}
-                  phase={phase}
                   status={sourceStatuses[sourceKey]}
                 />
               );

@@ -208,10 +208,8 @@ export function WorkflowTimeline({ stageRuns }: { stageRuns: StageRun[] }) {
               open && "rotate-90",
             )}
           />
-          <Timer size={16} className="shrink-0 text-muted-foreground/60" />
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">
-            Progress
-          </h2>
+          <Timer size={16} weight="fill" className="shrink-0 text-[#a8cc7c]" />
+          <h2 className="text-sm font-medium text-foreground/85">Progress</h2>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">

@@ -13,7 +13,9 @@ import {
   qaCheckPackage,
   refinePackageWithWeaponsCheck,
   runPlannedSourceResearch,
+  selectHookCandidates,
   sourceConfigs,
+  validateLaunchPackage,
 } from "@/server/launch/engine";
 import { classifyLaunchError, withRetry } from "@/server/launch/errors";
 import {
@@ -277,7 +279,7 @@ export async function POST(request: Request) {
           { runId, currentStage: "hook_agent" },
           { token },
         );
-        const hookCandidates = await withRetry({
+        const generatedHookCandidates = await withRetry({
           fn: () => generateHookCandidates(brief, research, synthesisNotes),
           label: "hook candidates",
           maxAttempts: 2,
@@ -290,16 +292,30 @@ export async function POST(request: Request) {
             });
           },
         });
+        const hookSelection = await withRetry({
+          fn: () =>
+            selectHookCandidates(
+              brief,
+              research,
+              synthesisNotes,
+              generatedHookCandidates,
+            ),
+          label: "hook selection",
+          maxAttempts: 2,
+        });
         await fetchMutation(
           api.runs.createArtifact,
           {
             runId,
             artifactType: "hook_candidates",
             content: {
-              hooks: hookCandidates,
+              generatedHooks: generatedHookCandidates,
+              rejectedHooks: hookSelection.rejectedHooks,
+              selectedHooks: hookSelection.selectedHooks,
+              winningHook: hookSelection.winningHook,
             },
             stageKey: "hook_agent",
-            message: "Hook agent generated candidate hooks.",
+            message: "Hook agent generated and ranked candidate hooks.",
           },
           { token },
         );
@@ -311,9 +327,10 @@ export async function POST(request: Request) {
         const draftPackage = await withRetry({
           fn: () =>
             generateDraftPackage(brief, research, {
-              hookCandidates,
+              hookCandidates: hookSelection.selectedHooks,
               synthesisNotes,
-            }),
+              winningHook: hookSelection.winningHook,
+            }).then(validateLaunchPackage),
           label: "package draft",
           maxAttempts: 2,
           onRetry: ({ attempt, error }) => {
@@ -370,7 +387,12 @@ export async function POST(request: Request) {
           );
           finalPackage = await withRetry({
             fn: () =>
-              refinePackageWithWeaponsCheck(brief, research, draftPackage),
+              refinePackageWithWeaponsCheck(
+                brief,
+                research,
+                draftPackage,
+                qaReport,
+              ).then(validateLaunchPackage),
             label: "rewrite attempt",
             maxAttempts: 2,
           });
@@ -413,6 +435,18 @@ export async function POST(request: Request) {
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "finalized" },
+          { token },
+        );
+        finalPackage = validateLaunchPackage(finalPackage);
+        await fetchMutation(
+          api.runs.recordEvent,
+          {
+            runId,
+            kind: "stage_completed",
+            stageKey: "finalized",
+            message:
+              "Final package passed structural validation before render.",
+          },
           { token },
         );
         await fetchMutation(
