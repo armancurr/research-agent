@@ -119,9 +119,9 @@ function isHookArtifact(content: unknown): content is HookArtifact {
 
 function HookArtifactSummary({ report }: { report: HookArtifact }) {
   return (
-    <div className="space-y-4 rounded-lg border border-border/50 bg-card/35 px-4 py-4">
+    <div className="space-y-4 border-l border-border/40 pl-4">
       <div>
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+        <p className="text-xs font-medium text-muted-foreground/70">
           Winning Hook
         </p>
         <p className="mt-1 text-sm font-medium text-foreground/95">
@@ -139,15 +139,12 @@ function HookArtifactSummary({ report }: { report: HookArtifact }) {
       </div>
 
       <div>
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+        <p className="text-xs font-medium text-muted-foreground/70">
           Selected Hooks
         </p>
         <div className="mt-2 grid gap-2">
           {report.selectedHooks.map((hook) => (
-            <div
-              key={hook.label}
-              className="rounded-md border border-border/35 bg-muted/15 px-3 py-2"
-            >
+            <div key={hook.label} className="border-l border-border/35 pl-3">
               <p className="text-sm font-medium text-foreground/90">
                 {hook.label}
                 {hook.archetype ? ` • ${hook.archetype}` : ""}
@@ -168,7 +165,7 @@ function HookArtifactSummary({ report }: { report: HookArtifact }) {
 
       {report.rejectedHooks.length > 0 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          <p className="text-xs font-medium text-muted-foreground/70">
             Rejected Hooks
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
@@ -189,11 +186,9 @@ function QaArtifactSummary({ report }: { report: QaArtifact }) {
   const scriptEntries = Object.entries(report.scriptBreakdown);
 
   return (
-    <div className="space-y-4 rounded-lg border border-border/50 bg-card/35 px-4 py-4">
+    <div className="space-y-4 border-l border-border/40 pl-4">
       <div>
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
-          Verdict
-        </p>
+        <p className="text-xs font-medium text-muted-foreground/70">Verdict</p>
         <p className="mt-1 text-sm leading-relaxed text-foreground/90">
           {report.verdict}
         </p>
@@ -216,7 +211,7 @@ function QaArtifactSummary({ report }: { report: QaArtifact }) {
       </div>
 
       <div>
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+        <p className="text-xs font-medium text-muted-foreground/70">
           Script Breakdown
         </p>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -238,7 +233,7 @@ function QaArtifactSummary({ report }: { report: QaArtifact }) {
 
       {report.hookBreakdown.length > 0 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          <p className="text-xs font-medium text-muted-foreground/70">
             Hook Breakdown
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
@@ -255,7 +250,7 @@ function QaArtifactSummary({ report }: { report: QaArtifact }) {
 
       {report.weaknesses.length > 0 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          <p className="text-xs font-medium text-muted-foreground/70">
             Weaknesses
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
@@ -268,7 +263,7 @@ function QaArtifactSummary({ report }: { report: QaArtifact }) {
 
       {report.priorityFixes.length > 0 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          <p className="text-xs font-medium text-muted-foreground/70">
             Priority Fixes
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
@@ -281,7 +276,7 @@ function QaArtifactSummary({ report }: { report: QaArtifact }) {
 
       {report.rewriteInstructions.length > 0 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          <p className="text-xs font-medium text-muted-foreground/70">
             Rewrite Instructions
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
@@ -343,7 +338,7 @@ function ArtifactRow({ artifact }: { artifact: Artifact }) {
       <CollapsibleContent>
         <div className="max-w-full space-y-4 px-4 pb-4 pt-1">
           {showMarkdown ? (
-            <div className="overflow-hidden rounded-lg border border-border/50 bg-card/40 px-4 py-4">
+            <div className="overflow-hidden border-l border-border/40 pl-4">
               <LaunchMarkdownBody markdown={artifact.markdown ?? ""} />
             </div>
           ) : null}
@@ -352,11 +347,11 @@ function ArtifactRow({ artifact }: { artifact: Artifact }) {
           {showJson ? (
             <div className="space-y-1.5">
               {showMarkdown ? (
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                <p className="text-xs font-medium text-muted-foreground/70">
                   Structured data
                 </p>
               ) : qaArtifact ? (
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                <p className="text-xs font-medium text-muted-foreground/70">
                   Raw artifact
                 </p>
               ) : null}
@@ -389,14 +384,16 @@ export function RunArtifactsPanel({ artifacts }: { artifacts: Artifact[] }) {
               sectionOpen && "rotate-90",
             )}
           />
-          <Package size={16} className="shrink-0 text-muted-foreground/60" />
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">
-            Artifacts
-          </h2>
+          <Package
+            size={16}
+            weight="fill"
+            className="shrink-0 text-[#efb080]"
+          />
+          <h2 className="text-sm font-medium text-foreground/85">Artifacts</h2>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
-          <div className="mt-3 max-w-full rounded-lg border border-border/50 divide-y divide-border/30">
+          <div className="mt-3 max-w-full divide-y divide-border/30 border-y border-border/30">
             {artifacts.map((artifact) => (
               <ArtifactRow key={artifact._id} artifact={artifact} />
             ))}
