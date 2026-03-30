@@ -1,7 +1,7 @@
 import { ArrowRight } from "@phosphor-icons/react/ssr";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { LandingChatHeroPreview } from "@/components/landing/landing-chat-hero-preview";
 import { AppHeader } from "@/components/shared/app-header";
 import { Button } from "@/components/ui/button";
 
@@ -127,59 +127,22 @@ export default function Home() {
 
             <div className="mt-16 flex w-full items-center justify-center lg:mt-20">
               <div
-                className={`relative flex w-full ${SECTION_MAX_WIDTH} items-end justify-center overflow-hidden rounded-[10px]`}
+                className={`relative w-full ${SECTION_MAX_WIDTH} max-w-full`}
               >
-                <Image
-                  src="/image1.png"
-                  alt="Research Agent hero preview"
-                  className="h-full w-full object-cover"
-                  width={1920}
-                  height={1080}
-                  sizes="100vw"
-                  priority
-                />
+                <div className="relative overflow-hidden rounded-2xl border border-white/10">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-[url('/background.jpg')] bg-cover bg-center bg-no-repeat"
+                  />
+                  <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10">
+                    <div className="mx-auto w-full max-w-[min(100%,1320px)]">
+                      <LandingChatHeroPreview />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section
-        id="work"
-        className="bg-background px-6 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24"
-      >
-        <div className={`mx-auto w-full ${SECTION_MAX_WIDTH}`}>
-          <h2 className="mx-auto mb-12 max-w-[720px] text-center text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-foreground sm:text-[2.75rem] lg:text-[3.4rem]">
-            Launch campaigns built for traction
-          </h2>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
-            <article className="relative overflow-hidden rounded-[8px] border border-border/70 bg-card/30">
-              <div className="aspect-[16/11]" />
-            </article>
-
-            <article className="relative overflow-hidden rounded-[8px] border border-border/70 bg-card/30">
-              <div className="aspect-[16/11]" />
-            </article>
-
-            <article className="relative overflow-hidden rounded-[8px] border border-border/70 bg-card/30">
-              <div className="aspect-[16/11]" />
-            </article>
-
-            <article className="relative overflow-hidden rounded-[8px] border border-border/70 bg-card/30">
-              <div className="aspect-[16/11]" />
-            </article>
-          </div>
-
-          {/*
-          <div className="mt-20 bg-background px-6 py-14 sm:px-10 sm:py-16 lg:px-16 lg:py-20">
-            <div className="mx-auto max-w-[900px]">
-              <h3 className="mx-auto max-w-[540px] text-center text-[2.4rem] font-medium leading-[1.06] tracking-[-0.07em] text-foreground sm:text-[3rem]">
-                What founders say about research-led launch work.
-              </h3>
-            </div>
-          </div>
-          */}
         </div>
       </section>
 
