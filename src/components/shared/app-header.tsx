@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthActions } from "@convex-dev/auth/react";
-import { Globe, Plus, SignOut } from "@phosphor-icons/react";
+import { ArrowRight, Globe, Plus, SignOut } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -16,6 +16,8 @@ type AppHeaderProps = {
   showPrimaryNav?: boolean;
   /** Hide sign out (e.g. auth page). */
   showSignOut?: boolean;
+  /** Show a sign-in button instead of sign out. */
+  showSignIn?: boolean;
   className?: string;
 };
 
@@ -23,6 +25,7 @@ export function AppHeader({
   actions,
   showPrimaryNav = true,
   showSignOut = true,
+  showSignIn = false,
   className,
 }: AppHeaderProps) {
   const router = useRouter();
@@ -79,6 +82,18 @@ export function AppHeader({
 
       <div className="flex shrink-0 items-center gap-2">
         {actions}
+        {showSignIn ? (
+          <Button
+            variant="outline"
+            size="sm"
+            nativeButton={false}
+            className="gap-1.5"
+            render={<Link href="/auth" />}
+          >
+            <ArrowRight size={14} weight="bold" aria-hidden />
+            Sign in
+          </Button>
+        ) : null}
         {showSignOut ? (
           <Button
             variant="outline"

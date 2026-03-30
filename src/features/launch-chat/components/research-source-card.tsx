@@ -168,7 +168,7 @@ export function ResearchSourceCard({
               href={result.url}
               target="_blank"
               rel="noreferrer"
-              className="inline-block max-w-full truncate rounded border border-border/40 bg-muted/15 px-2 py-1 text-xs font-medium text-foreground/75 transition-colors hover:border-border hover:bg-muted/30 hover:text-foreground"
+              className="inline-block max-w-full truncate text-xs font-medium text-foreground/75 transition-colors hover:text-foreground hover:underline"
               title={result.title}
             >
               {result.title}
