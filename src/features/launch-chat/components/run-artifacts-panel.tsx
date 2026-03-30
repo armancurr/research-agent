@@ -12,6 +12,65 @@ import { LaunchMarkdownBody } from "@/features/launch-chat/components/launch-mar
 import { formatTimestamp } from "@/features/launch-chat/utils/run-display";
 import { cn } from "@/lib/utils";
 
+type QaArtifact = {
+  pass: boolean;
+  hookBreakdown: Array<{
+    issue: string;
+    label: string;
+    score: number;
+  }>;
+  priorityFixes: string[];
+  verdict: string;
+  scores: {
+    actionability: number;
+    evidenceGrounding: number;
+    fundraising: number;
+    hooks: number;
+    script: number;
+    strategicAngle: number;
+  };
+  scriptBreakdown: {
+    bodyBeats: number;
+    cta: number;
+    headline: number;
+    openingHook: number;
+    spokenDelivery: number;
+  };
+  weaknesses: string[];
+  rewriteInstructions: string[];
+};
+
+type HookArtifact = {
+  generatedHooks: Array<{
+    archetype?: string;
+    copy: string;
+    label: string;
+    rationale: string;
+    score?: number;
+    scoreReason?: string;
+  }>;
+  rejectedHooks: Array<{
+    label: string;
+    reason: string;
+  }>;
+  selectedHooks: Array<{
+    archetype?: string;
+    copy: string;
+    label: string;
+    rationale: string;
+    score?: number;
+    scoreReason?: string;
+  }>;
+  winningHook: {
+    archetype?: string;
+    copy: string;
+    label: string;
+    rationale: string;
+    score?: number;
+    scoreReason?: string;
+  };
+};
+
 type Artifact = {
   _id: string;
   artifactType: string;
@@ -32,10 +91,223 @@ function hasRenderableJson(content: unknown): boolean {
   return true;
 }
 
+function isQaArtifact(content: unknown): content is QaArtifact {
+  if (!content || typeof content !== "object") {
+    return false;
+  }
+
+  const candidate = content as Partial<QaArtifact>;
+  return (
+    typeof candidate.pass === "boolean" &&
+    typeof candidate.verdict === "string" &&
+    Boolean(candidate.scores)
+  );
+}
+
+function isHookArtifact(content: unknown): content is HookArtifact {
+  if (!content || typeof content !== "object") {
+    return false;
+  }
+
+  const candidate = content as Partial<HookArtifact>;
+  return (
+    Array.isArray(candidate.generatedHooks) &&
+    Array.isArray(candidate.selectedHooks) &&
+    Boolean(candidate.winningHook)
+  );
+}
+
+function HookArtifactSummary({ report }: { report: HookArtifact }) {
+  return (
+    <div className="space-y-4 rounded-lg border border-border/50 bg-card/35 px-4 py-4">
+      <div>
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          Winning Hook
+        </p>
+        <p className="mt-1 text-sm font-medium text-foreground/95">
+          {report.winningHook.label}
+          {report.winningHook.score ? ` • ${report.winningHook.score}/10` : ""}
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-foreground/85">
+          {report.winningHook.copy}
+        </p>
+        {report.winningHook.scoreReason ? (
+          <p className="mt-1 text-xs text-muted-foreground/75">
+            {report.winningHook.scoreReason}
+          </p>
+        ) : null}
+      </div>
+
+      <div>
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          Selected Hooks
+        </p>
+        <div className="mt-2 grid gap-2">
+          {report.selectedHooks.map((hook) => (
+            <div
+              key={hook.label}
+              className="rounded-md border border-border/35 bg-muted/15 px-3 py-2"
+            >
+              <p className="text-sm font-medium text-foreground/90">
+                {hook.label}
+                {hook.archetype ? ` • ${hook.archetype}` : ""}
+                {hook.score ? ` • ${hook.score}/10` : ""}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-foreground/80">
+                {hook.copy}
+              </p>
+              {hook.scoreReason ? (
+                <p className="mt-1 text-xs text-muted-foreground/75">
+                  {hook.scoreReason}
+                </p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {report.rejectedHooks.length > 0 ? (
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            Rejected Hooks
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
+            {report.rejectedHooks.map((hook) => (
+              <li key={hook.label}>
+                <span className="font-medium">{hook.label}:</span> {hook.reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function QaArtifactSummary({ report }: { report: QaArtifact }) {
+  const entries = Object.entries(report.scores);
+  const scriptEntries = Object.entries(report.scriptBreakdown);
+
+  return (
+    <div className="space-y-4 rounded-lg border border-border/50 bg-card/35 px-4 py-4">
+      <div>
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          Verdict
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-foreground/90">
+          {report.verdict}
+        </p>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        {entries.map(([key, value]) => (
+          <div
+            key={key}
+            className="rounded-md border border-border/35 bg-muted/15 px-3 py-2"
+          >
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/60">
+              {key.replace(/([A-Z])/g, " $1")}
+            </p>
+            <p className="mt-1 text-sm font-medium text-foreground/90">
+              {value}/10
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+          Script Breakdown
+        </p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          {scriptEntries.map(([key, value]) => (
+            <div
+              key={key}
+              className="rounded-md border border-border/35 bg-muted/15 px-3 py-2"
+            >
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/60">
+                {key.replace(/([A-Z])/g, " $1")}
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground/90">
+                {value}/10
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {report.hookBreakdown.length > 0 ? (
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            Hook Breakdown
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
+            {report.hookBreakdown.map((hook) => (
+              <li key={hook.label}>
+                <span className="font-medium">{hook.label}</span>
+                {` • ${hook.score}/10`}
+                {` • ${hook.issue}`}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {report.weaknesses.length > 0 ? (
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            Weaknesses
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
+            {report.weaknesses.map((weakness) => (
+              <li key={weakness}>{weakness}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {report.priorityFixes.length > 0 ? (
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            Priority Fixes
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
+            {report.priorityFixes.map((fix) => (
+              <li key={fix}>{fix}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {report.rewriteInstructions.length > 0 ? (
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            Rewrite Instructions
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/85">
+            {report.rewriteInstructions.map((instruction) => (
+              <li key={instruction}>{instruction}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ArtifactRow({ artifact }: { artifact: Artifact }) {
   const [open, setOpen] = useState(false);
   const showMarkdown = Boolean(artifact.markdown?.trim());
   const showJson = hasRenderableJson(artifact.content);
+  const hookArtifact =
+    artifact.artifactType === "hook_candidates" &&
+    isHookArtifact(artifact.content)
+      ? artifact.content
+      : null;
+  const qaArtifact =
+    artifact.artifactType === "qa_report" && isQaArtifact(artifact.content)
+      ? artifact.content
+      : null;
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -75,11 +347,17 @@ function ArtifactRow({ artifact }: { artifact: Artifact }) {
               <LaunchMarkdownBody markdown={artifact.markdown ?? ""} />
             </div>
           ) : null}
+          {hookArtifact ? <HookArtifactSummary report={hookArtifact} /> : null}
+          {qaArtifact ? <QaArtifactSummary report={qaArtifact} /> : null}
           {showJson ? (
             <div className="space-y-1.5">
               {showMarkdown ? (
                 <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
                   Structured data
+                </p>
+              ) : qaArtifact ? (
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                  Raw artifact
                 </p>
               ) : null}
               <JsonArtifactView data={artifact.content} />

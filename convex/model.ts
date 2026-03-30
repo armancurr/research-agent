@@ -12,8 +12,15 @@ export const startupBriefValidator = v.object({
 });
 
 export const sourceInsightValidator = v.object({
+  focus: v.string(),
+  sourceTitle: v.string(),
+  url: v.string(),
+  quoteOrExcerpt: v.string(),
   signal: v.string(),
   evidence: v.string(),
+  publishedDate: v.optional(v.string()),
+  engagementHint: v.optional(v.string()),
+  signalStrength: v.optional(v.number()),
   whyItMatters: v.string(),
 });
 

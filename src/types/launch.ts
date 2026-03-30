@@ -10,8 +10,15 @@ export type StartupBrief = {
 };
 
 export type SourceInsight = {
+  focus: string;
+  sourceTitle: string;
+  url: string;
+  quoteOrExcerpt: string;
   signal: string;
   evidence: string;
+  publishedDate?: string;
+  engagementHint?: string;
+  signalStrength?: number;
   whyItMatters: string;
 };
 
@@ -59,13 +66,31 @@ export type SynthesisNotes = {
 };
 
 export type HookCandidate = {
+  archetype?: string;
   copy: string;
   label: string;
   rationale: string;
+  score?: number;
+  scoreReason?: string;
+};
+
+export type HookSelectionResult = {
+  rejectedHooks: Array<{
+    label: string;
+    reason: string;
+  }>;
+  selectedHooks: HookCandidate[];
+  winningHook: HookCandidate;
 };
 
 export type QaReport = {
   pass: boolean;
+  hookBreakdown: Array<{
+    issue: string;
+    label: string;
+    score: number;
+  }>;
+  priorityFixes: string[];
   rewriteInstructions: string[];
   scores: {
     actionability: number;
@@ -74,6 +99,13 @@ export type QaReport = {
     hooks: number;
     script: number;
     strategicAngle: number;
+  };
+  scriptBreakdown: {
+    bodyBeats: number;
+    cta: number;
+    headline: number;
+    openingHook: number;
+    spokenDelivery: number;
   };
   verdict: string;
   weaknesses: string[];

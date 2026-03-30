@@ -35,6 +35,15 @@ export function ResearchSourceCard({
   const isLoading =
     status === "running" || (!bucket && phase !== "done" && phase !== "error");
 
+  const formatInsightYear = (publishedDate?: string) => {
+    if (!publishedDate) {
+      return "";
+    }
+
+    const date = new Date(publishedDate);
+    return Number.isNaN(date.getTime()) ? "" : String(date.getFullYear());
+  };
+
   const hasFoldableDetails =
     bucket &&
     (Boolean(latestMessage) ||
@@ -130,16 +139,40 @@ export function ResearchSourceCard({
                 {bucket.insights.length > 0 ? (
                   <div className="space-y-1.5">
                     {bucket.insights.map((insight) => (
-                      <p
-                        key={`${bucket.source}-${insight.signal}`}
-                        className="text-sm leading-relaxed text-foreground/70"
+                      <div
+                        key={`${bucket.source}-${insight.url}-${insight.signal}`}
+                        className="rounded-md border border-border/35 bg-muted/10 px-2.5 py-2 text-sm leading-relaxed text-foreground/70"
                       >
-                        <span className="font-medium text-foreground/85">
-                          {insight.signal}
-                        </span>
-                        {" — "}
-                        {insight.evidence}
-                      </p>
+                        <p>
+                          <span className="font-medium text-foreground/85">
+                            {insight.signal}
+                          </span>
+                          {" — "}
+                          {insight.evidence}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground/80">
+                          {insight.sourceTitle}
+                          {formatInsightYear(insight.publishedDate)
+                            ? ` • ${formatInsightYear(insight.publishedDate)}`
+                            : ""}
+                          {insight.engagementHint
+                            ? ` • ${insight.engagementHint}`
+                            : ""}
+                        </p>
+                        <p className="mt-1 text-xs italic text-muted-foreground/75">
+                          "{insight.quoteOrExcerpt}"
+                        </p>
+                        {insight.url ? (
+                          <a
+                            href={insight.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-block text-xs text-primary/80 hover:underline"
+                          >
+                            Open source
+                          </a>
+                        ) : null}
+                      </div>
                     ))}
                   </div>
                 ) : null}
