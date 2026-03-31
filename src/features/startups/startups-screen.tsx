@@ -1,11 +1,20 @@
 "use client";
 
 import { api } from "@convex/_generated/api";
-import { ArrowUpRight, Stack } from "@phosphor-icons/react";
+import { ArrowUpRight, FolderSimple, Plus } from "@phosphor-icons/react";
 import { useQuery } from "convex/react";
 import Link from "next/link";
 import { AppHeader } from "@/components/shared/app-header";
 import { AppShell } from "@/components/shared/app-shell";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 function formatRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -65,22 +74,39 @@ export function StartupsScreen() {
             ))}
           </div>
         ) : startups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-28 text-center">
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-border/60 bg-card">
-              <Stack
-                size={22}
-                weight="duotone"
-                className="text-muted-foreground/70"
-              />
-            </div>
-            <p className="text-sm font-medium text-foreground">
-              No startups yet
-            </p>
-            <p className="mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">
-              Hit &ldquo;New startup&rdquo; in the header to define your first
-              brief and kick off a research run.
-            </p>
-          </div>
+          <Empty className="py-28">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <FolderSimple size={16} weight="fill" />
+              </EmptyMedia>
+              <EmptyTitle>No startups yet</EmptyTitle>
+              <EmptyDescription className="text-xs">
+                Start your first brief to generate launch research.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent className="mt-2 flex-row flex-wrap items-center justify-center gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                nativeButton={false}
+                className="gap-1.5"
+                render={<Link href="/new" />}
+              >
+                <Plus size={16} weight="bold" aria-hidden />
+                New startup
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                className="gap-1.5"
+                render={<Link href="/?preview=1" />}
+              >
+                <ArrowUpRight size={16} weight="bold" aria-hidden />
+                How it works
+              </Button>
+            </EmptyContent>
+          </Empty>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {startups.map((startup) => {

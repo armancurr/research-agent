@@ -8,12 +8,11 @@ import { useEffect, useMemo, useRef } from "react";
 import { AppHeader } from "@/components/shared/app-header";
 import { LaunchChatHeaderActions } from "@/features/launch-chat/components/launch-chat-header-actions";
 import { LaunchPackagePreviewCard } from "@/features/launch-chat/components/launch-package-preview-card";
-import { ResearchSourcesGrid } from "@/features/launch-chat/components/research-sources-grid";
-import { RunArtifactsPanel } from "@/features/launch-chat/components/run-artifacts-panel";
+import { LaunchRunTabs } from "@/features/launch-chat/components/launch-run-tabs";
 import { StartupBriefCard } from "@/features/launch-chat/components/startup-brief-card";
-import { WorkflowTimeline } from "@/features/launch-chat/components/workflow-timeline";
 import { useLaunchStream } from "@/features/launch-chat/hooks/use-launch-stream";
-import type { ResearchBucket } from "@/types/launch";
+import { useViewMode } from "@/features/launch-chat/hooks/use-view-mode";
+import type { LaunchPackage, ResearchBucket } from "@/types/launch";
 
 export function LaunchChatScreen({ runId }: { runId: string }) {
   const router = useRouter();
@@ -23,6 +22,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   const rerunFromRun = useMutation(api.runs.rerunFromRun);
   const hasStartedRef = useRef(false);
   const { buckets, hydrate, phase, startStream, synthesis } = useLaunchStream();
+  const { mode, effectiveMode, setMode } = useViewMode();
 
   const persistedResearch = useMemo(() => {
     const artifact = runData?.artifacts.find(
@@ -39,6 +39,16 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     if (typeof artifact.markdown === "string") return artifact.markdown;
     const value = artifact.content as { text?: string } | undefined;
     return value?.text ?? "";
+  }, [runData]);
+
+  const persistedPackage = useMemo(() => {
+    const artifact = runData?.artifacts.find(
+      (entry) => entry.artifactType === "launch_package_final",
+    );
+    if (artifact?.content && typeof artifact.content === "object") {
+      return artifact.content as LaunchPackage;
+    }
+    return null;
   }, [runData]);
 
   const displayedBuckets = buckets.size
@@ -123,35 +133,81 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     router.push(`/chat/${nextRunId}`);
   }
 
+  const isSplit = effectiveMode === "split";
+
+  const leftContent = (
+    <>
+      <StartupBriefCard brief={runData.run.briefSnapshot} />
+      <LaunchRunTabs
+        stageRuns={runData.stageRuns}
+        buckets={displayedBuckets}
+        latestMessages={sourceMessages}
+        sourceStatuses={sourceStatuses}
+        artifacts={runData.artifacts}
+      />
+    </>
+  );
+
+  const rightContent = (
+    <LaunchPackagePreviewCard
+      phase={displayedPhase}
+      synthesis={displayedSynthesis}
+      structuredPackage={persistedPackage}
+    />
+  );
+
+  const unifiedContent = (
+    <div className="space-y-6">
+      <LaunchPackagePreviewCard
+        phase={displayedPhase}
+        synthesis={displayedSynthesis}
+        structuredPackage={persistedPackage}
+      />
+      <LaunchRunTabs
+        stageRuns={runData.stageRuns}
+        buckets={displayedBuckets}
+        latestMessages={sourceMessages}
+        sourceStatuses={sourceStatuses}
+        artifacts={runData.artifacts}
+      />
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <AppHeader
         actions={
           <LaunchChatHeaderActions
             runStatus={runData.run.status}
-            onApprove={handleApprove}
+            viewMode={mode}
+            onViewModeChange={setMode}
             onRerun={handleRerun}
+            onApprove={handleApprove}
           />
         }
       />
 
       <div className="border-t border-border/30">
-        <div className="mx-auto w-full max-w-5xl px-5 py-5 sm:px-6 lg:px-8">
-          <StartupBriefCard brief={runData.run.briefSnapshot} />
-          <div className="space-y-6">
-            <WorkflowTimeline stageRuns={runData.stageRuns} />
-            <LaunchPackagePreviewCard
-              phase={displayedPhase}
-              synthesis={displayedSynthesis}
-            />
-            <ResearchSourcesGrid
-              buckets={displayedBuckets}
-              latestMessages={sourceMessages}
-              sourceStatuses={sourceStatuses}
-            />
-            <RunArtifactsPanel artifacts={runData.artifacts} />
+        {isSplit ? (
+          <div
+            className="grid grid-cols-2"
+            style={{
+              height: "calc(100vh - 3.5rem)",
+            }}
+          >
+            <div className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+              {leftContent}
+            </div>
+            <div className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+              {rightContent}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mx-auto w-full max-w-5xl px-5 py-5 sm:px-6 lg:px-8">
+            <StartupBriefCard brief={runData.run.briefSnapshot} />
+            {unifiedContent}
+          </div>
+        )}
       </div>
     </div>
   );

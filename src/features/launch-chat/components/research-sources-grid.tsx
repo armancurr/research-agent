@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
+import { CaretRight, GlobeSimpleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import {
   Collapsible,
@@ -19,6 +19,7 @@ export function ResearchSourcesGrid({
   buckets,
   latestMessages,
   sourceStatuses,
+  embedded = false,
 }: {
   buckets: Map<string, ResearchBucket>;
   latestMessages: Partial<Record<ResearchBucket["source"], string>>;
@@ -28,13 +29,39 @@ export function ResearchSourcesGrid({
       "waiting" | "running" | "completed" | "failed"
     >
   >;
+  embedded?: boolean;
 }) {
   const [open, setOpen] = useState(true);
+
+  const content = (
+    <div
+      className={cn("grid gap-x-6 gap-y-3 sm:grid-cols-2", !embedded && "mt-5")}
+    >
+      {sourceOrder.map((sourceKey) => {
+        const meta = sourceMeta[sourceKey];
+        return (
+          <ResearchSourceCard
+            key={sourceKey}
+            bucket={buckets.get(sourceKey)}
+            icon={meta.icon}
+            iconClassName={meta.iconClassName}
+            label={meta.label}
+            latestMessage={latestMessages[sourceKey]}
+            status={sourceStatuses[sourceKey]}
+          />
+        );
+      })}
+    </div>
+  );
+
+  if (embedded) {
+    return <div className="max-w-full select-none">{content}</div>;
+  }
 
   return (
     <section className="mb-6 max-w-full select-none">
       <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-2 rounded-md py-1.5 text-left">
+        <CollapsibleTrigger className="flex w-full cursor-pointer items-start gap-2 rounded-md py-1.5 text-left">
           <CaretRight
             size={12}
             weight="bold"
@@ -43,31 +70,25 @@ export function ResearchSourcesGrid({
               open && "rotate-90",
             )}
           />
-          <MagnifyingGlass
-            size={16}
-            weight="fill"
-            className="shrink-0 text-[#e394dc]"
-          />
-          <h2 className="text-sm font-medium text-foreground/85">Sources</h2>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <GlobeSimpleIcon
+                size={16}
+                weight="fill"
+                className="shrink-0 text-[#e394dc]"
+              />
+              <h2 className="text-sm font-medium text-foreground/85">
+                Sources
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground/65">
+              Review the live research inputs feeding this run.
+            </p>
+          </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
-          <div className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2">
-            {sourceOrder.map((sourceKey) => {
-              const meta = sourceMeta[sourceKey];
-              return (
-                <ResearchSourceCard
-                  key={sourceKey}
-                  bucket={buckets.get(sourceKey)}
-                  icon={meta.icon}
-                  iconClassName={meta.iconClassName}
-                  label={meta.label}
-                  latestMessage={latestMessages[sourceKey]}
-                  status={sourceStatuses[sourceKey]}
-                />
-              );
-            })}
-          </div>
+          {content}
         </CollapsibleContent>
       </Collapsible>
     </section>

@@ -1,6 +1,8 @@
+import { isAuthenticatedNextjs } from "@convex-dev/auth/nextjs/server";
 import { ArrowRight } from "@phosphor-icons/react/ssr";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { LandingChatHeroPreview } from "@/components/landing/landing-chat-hero-preview";
 import { AppHeader } from "@/components/shared/app-header";
 import { Button } from "@/components/ui/button";
@@ -83,13 +85,23 @@ function getProcessDotColor(columnIndex: number, rowIndex: number) {
   return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string }>;
+}) {
+  const { preview } = await searchParams;
+  const isAuthed = await isAuthenticatedNextjs();
+  if (isAuthed && preview !== "1") {
+    redirect("/startup");
+  }
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <AppHeader
-        showPrimaryNav={false}
-        showSignOut={false}
-        showSignIn
+        showPrimaryNav={isAuthed}
+        showSignOut={isAuthed}
+        showSignIn={!isAuthed}
         className="sticky top-0 border-border/70"
       />
       <section

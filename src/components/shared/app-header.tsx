@@ -1,22 +1,34 @@
 "use client";
 
 import { useAuthActions } from "@convex-dev/auth/react";
-import { ArrowRight, Globe, Plus, SignOut } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  Check,
+  GearSix,
+  GlobeSimple,
+  Palette,
+  Plus,
+  SignOut,
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { useTheme } from "@/components/providers/theme-provider";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { appThemes } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 
 type AppHeaderProps = {
-  /** Extra controls (e.g. Restart / Approve on /chat). Shown before sign out. */
   actions?: ReactNode;
-  /** Hide brand + New startup (e.g. auth page). */
   showPrimaryNav?: boolean;
-  /** Hide sign out (e.g. auth page). */
   showSignOut?: boolean;
-  /** Show a sign-in button instead of sign out. */
   showSignIn?: boolean;
   className?: string;
 };
@@ -30,6 +42,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const router = useRouter();
   const { signOut } = useAuthActions();
+  const { theme, setThemeWithShutter } = useTheme();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -48,7 +61,7 @@ export function AppHeader({
       href={showPrimaryNav ? "/startup" : "/auth"}
       className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
     >
-      <Globe size={18} weight="duotone" className="shrink-0 text-primary" />
+      <GlobeSimple size={18} weight="fill" className="shrink-0 text-primary" />
       Research Agent
     </Link>
   );
@@ -95,15 +108,67 @@ export function AppHeader({
           </Button>
         ) : null}
         {showSignOut ? (
-          <Button
-            variant="outline"
-            size="icon-sm"
-            disabled={isSigningOut}
-            onClick={handleSignOut}
-            aria-label={isSigningOut ? "Signing out" : "Sign out"}
-          >
-            <SignOut size={18} />
-          </Button>
+          <Popover>
+            <PopoverTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label="Open settings"
+                />
+              }
+            >
+              <GearSix size={18} weight="fill" />
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0">
+              <div className="p-2">
+                <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-muted-foreground">
+                  <Palette size={12} weight="fill" aria-hidden />
+                  Theme
+                </div>
+                <div className="mt-1 space-y-1">
+                  {appThemes.map((option) => {
+                    const isActive = option.value === theme;
+
+                    return (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant="ghost"
+                        className={cn(
+                          "h-auto w-full items-start justify-between rounded-lg px-3 py-2 text-left",
+                          isActive && "bg-muted text-foreground",
+                        )}
+                        onClick={() => setThemeWithShutter(option.value)}
+                      >
+                        <span className="text-sm font-medium text-foreground">
+                          {option.label}
+                        </span>
+                        <span className="flex size-5 items-center justify-center text-primary">
+                          {isActive ? <Check size={16} weight="bold" /> : null}
+                        </span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Separator className="bg-border/70" />
+
+              <div className="p-2">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2 rounded-lg px-3"
+                  disabled={isSigningOut}
+                  onClick={handleSignOut}
+                  aria-label={isSigningOut ? "Signing out" : "Sign out"}
+                >
+                  <SignOut size={18} />
+                  {isSigningOut ? "Signing out" : "Sign out"}
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         ) : null}
       </div>
     </header>
