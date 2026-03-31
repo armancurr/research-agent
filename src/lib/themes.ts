@@ -1,5 +1,14 @@
 export const appThemes = [
   {
+    value: "aura",
+    label: "Aura",
+    transition: {
+      background: "#15141b",
+      edge: "#a277ff",
+      glow: "rgba(162, 119, 255, 0.22)",
+    },
+  },
+  {
     value: "celestial",
     label: "Celestial",
     transition: {
@@ -24,6 +33,15 @@ export const appThemes = [
       background: "#0f1017",
       edge: "#add7ff",
       glow: "rgba(173, 215, 255, 0.22)",
+    },
+  },
+  {
+    value: "t3",
+    label: "T3",
+    transition: {
+      background: "#1a151f",
+      edge: "#e07aa4",
+      glow: "rgba(224, 122, 164, 0.22)",
     },
   },
   {

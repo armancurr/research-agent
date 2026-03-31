@@ -23,6 +23,7 @@ function PopoverContent({
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
+        positionMethod="fixed"
         side={side}
         sideOffset={sideOffset}
         align={align}
