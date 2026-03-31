@@ -182,7 +182,7 @@ export function LandingChatHeroPreview() {
       >
         <div className="flex min-h-full min-w-0 flex-col bg-background">
           {/* App header (static) */}
-          <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border/50 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-3 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
             <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
               <span className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
                 <Globe
@@ -229,7 +229,7 @@ export function LandingChatHeroPreview() {
             </div>
           </header>
 
-          <div className="border-t border-border/30">
+          <div>
             <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-5 sm:py-5 lg:px-8">
               {/* StartupBriefCard */}
               <section className="mb-5">

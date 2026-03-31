@@ -102,7 +102,6 @@ export default async function Home({
         showPrimaryNav={isAuthed}
         showSignOut={isAuthed}
         showSignIn={!isAuthed}
-        className="sticky top-0 border-border/70"
       />
       <section
         id="intro"

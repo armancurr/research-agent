@@ -187,7 +187,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
         }
       />
 
-      <div className="border-t border-border/30">
+      <div>
         {isSplit ? (
           <div
             className="grid grid-cols-2"
