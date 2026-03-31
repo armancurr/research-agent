@@ -6,7 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Cursor Dark theme — default (see cursor-dark.json) */
-:root {
+:root,
+:root[data-app-theme="cursor-dark"] {
   --background: #141414;
   --foreground: #d8dee9;
   --card: #1a1a1a;
@@ -39,6 +40,41 @@
   --sidebar-accent-foreground: #eceff4;
   --sidebar-border: #ffffff0d;
   --sidebar-ring: #404040;
+}
+
+:root[data-app-theme="noir-poimandres-darker"] {
+  --background: #0f1017;
+  --foreground: #a6accd;
+  --card: #0f1017;
+  --card-foreground: #e4f0fb;
+  --popover: #0f1017;
+  --popover-foreground: #e4f0fb;
+  --primary: #add7ff;
+  --primary-foreground: #0f1017;
+  --secondary: #303340;
+  --secondary-foreground: #e4f0fb;
+  --muted: #303340;
+  --muted-foreground: #767c9db3;
+  --accent: #5de4c7;
+  --accent-foreground: #0f1017;
+  --destructive: #d0679d;
+  --border: #303340;
+  --input: #ffffff05;
+  --ring: #89ddff;
+  --chart-1: #add7ff;
+  --chart-2: #5de4c7;
+  --chart-3: #fffac2;
+  --chart-4: #89ddff;
+  --chart-5: #f087bd;
+  --radius: 0.45rem;
+  --sidebar: #0f1017;
+  --sidebar-foreground: #767c9d;
+  --sidebar-primary: #add7ff;
+  --sidebar-primary-foreground: #0f1017;
+  --sidebar-accent: #303340;
+  --sidebar-accent-foreground: #e4f0fb;
+  --sidebar-border: #ffffff10;
+  --sidebar-ring: #89ddff;
 }
 
 @theme inline {

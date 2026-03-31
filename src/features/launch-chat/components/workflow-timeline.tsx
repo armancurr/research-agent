@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, Timer } from "@phosphor-icons/react";
+import { CaretRight, HourglassIcon } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Collapsible,
@@ -199,7 +199,7 @@ export function WorkflowTimeline({ stageRuns }: { stageRuns: StageRun[] }) {
   return (
     <section className="mb-6 select-none">
       <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-2 rounded-md py-1.5 text-left">
+        <CollapsibleTrigger className="flex w-full cursor-pointer items-start gap-2 rounded-md py-1.5 text-left">
           <CaretRight
             size={12}
             weight="bold"
@@ -208,13 +208,26 @@ export function WorkflowTimeline({ stageRuns }: { stageRuns: StageRun[] }) {
               open && "rotate-90",
             )}
           />
-          <Timer size={16} weight="fill" className="shrink-0 text-[#a8cc7c]" />
-          <h2 className="text-sm font-medium text-foreground/85">Progress</h2>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <HourglassIcon
+                size={16}
+                weight="fill"
+                className="shrink-0 text-[#a8cc7c]"
+              />
+              <h2 className="text-sm font-medium text-foreground/85">
+                Progress
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground/65">
+              Track each step as your research run moves forward.
+            </p>
+          </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
           {/* Progress bar area */}
-          <div className="relative mt-3 px-1.5">
+          <div className="relative mt-5 px-1.5">
             {/* Floating tooltip (only while running) */}
             {isRunning && (
               <div

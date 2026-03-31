@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, Package } from "@phosphor-icons/react";
+import { CaretRight, CubeIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import {
   Collapsible,
@@ -375,7 +375,7 @@ export function RunArtifactsPanel({ artifacts }: { artifacts: Artifact[] }) {
   return (
     <section className="mb-6 max-w-full select-none">
       <Collapsible open={sectionOpen} onOpenChange={setSectionOpen}>
-        <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-2 rounded-md py-1.5 text-left">
+        <CollapsibleTrigger className="flex w-full cursor-pointer items-start gap-2 rounded-md py-1.5 text-left">
           <CaretRight
             size={12}
             weight="bold"
@@ -384,16 +384,25 @@ export function RunArtifactsPanel({ artifacts }: { artifacts: Artifact[] }) {
               sectionOpen && "rotate-90",
             )}
           />
-          <Package
-            size={16}
-            weight="fill"
-            className="shrink-0 text-[#efb080]"
-          />
-          <h2 className="text-sm font-medium text-foreground/85">Artifacts</h2>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <CubeIcon
+                size={16}
+                weight="fill"
+                className="shrink-0 text-[#efb080]"
+              />
+              <h2 className="text-sm font-medium text-foreground/85">
+                Artifacts
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground/65">
+              Open the saved outputs generated during this run.
+            </p>
+          </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
-          <div className="mt-3 max-w-full divide-y divide-border/30 border-y border-border/30">
+          <div className="mt-5 max-w-full divide-y divide-border/30 border-y border-border/30">
             {artifacts.map((artifact) => (
               <ArtifactRow key={artifact._id} artifact={artifact} />
             ))}
