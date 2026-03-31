@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getArtifactDisplayName } from "@/features/launch-chat/utils/artifact-display-names";
 import { formatTimestamp } from "@/features/launch-chat/utils/run-display";
 
 type ArtifactSummary = {
@@ -109,7 +110,7 @@ export function ReviewCommentsPanel({
                   <SelectItem value="run">Run-level review</SelectItem>
                   {artifacts.map((artifact) => (
                     <SelectItem key={artifact._id} value={artifact._id}>
-                      {artifact.artifactType.replace(/_/g, " ")} v
+                      {getArtifactDisplayName(artifact.artifactType)} v
                       {artifact.version}
                     </SelectItem>
                   ))}
@@ -125,7 +126,7 @@ export function ReviewCommentsPanel({
                 onChange={(event) => setBody(event.target.value)}
                 placeholder={
                   selectedArtifact
-                    ? `Feedback for ${selectedArtifact.artifactType.replace(/_/g, " ")}...`
+                    ? `Feedback for ${getArtifactDisplayName(selectedArtifact.artifactType)}...`
                     : "Describe what should change or what you approve."
                 }
               />
@@ -149,11 +150,14 @@ export function ReviewCommentsPanel({
                   <span>•</span>
                   <span>
                     {comment.artifactId
-                      ? (artifacts
-                          .find(
+                      ? (() => {
+                          const linked = artifacts.find(
                             (artifact) => artifact._id === comment.artifactId,
-                          )
-                          ?.artifactType.replace(/_/g, " ") ?? "Artifact")
+                          );
+                          return linked
+                            ? getArtifactDisplayName(linked.artifactType)
+                            : "Artifact";
+                        })()
                       : "Run review"}
                   </span>
                 </div>

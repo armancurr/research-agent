@@ -1,14 +1,10 @@
 "use client";
 
-import {
-  CubeIcon,
-  GlobeSimpleIcon,
-  HourglassIcon,
-} from "@phosphor-icons/react";
+import { GlobeSimpleIcon, HourglassIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import type { Artifact } from "@/features/launch-chat/components/artifact-row";
+import { PipelineView } from "@/features/launch-chat/components/pipeline-view";
 import { ResearchSourcesGrid } from "@/features/launch-chat/components/research-sources-grid";
-import { RunArtifactsPanel } from "@/features/launch-chat/components/run-artifacts-panel";
-import { WorkflowTimeline } from "@/features/launch-chat/components/workflow-timeline";
 import { cn } from "@/lib/utils";
 import type { ResearchBucket } from "@/types/launch";
 
@@ -22,17 +18,7 @@ type StageRun = {
   summary?: string;
 };
 
-type Artifact = {
-  _id: string;
-  artifactType: string;
-  content: unknown;
-  createdAt: number;
-  isFinal?: boolean;
-  markdown?: string;
-  version: number;
-};
-
-type RunTab = "progress" | "sources" | "artifacts";
+type RunTab = "pipeline" | "sources";
 
 const tabs: Array<{
   value: RunTab;
@@ -41,8 +27,8 @@ const tabs: Array<{
   iconClassName: string;
 }> = [
   {
-    value: "progress",
-    label: "Progress",
+    value: "pipeline",
+    label: "Pipeline",
     icon: HourglassIcon,
     iconClassName: "text-[#a8cc7c]",
   },
@@ -51,12 +37,6 @@ const tabs: Array<{
     label: "Sources",
     icon: GlobeSimpleIcon,
     iconClassName: "text-[#e394dc]",
-  },
-  {
-    value: "artifacts",
-    label: "Artifacts",
-    icon: CubeIcon,
-    iconClassName: "text-[#efb080]",
   },
 ];
 
@@ -78,7 +58,7 @@ export function LaunchRunTabs({
   >;
   artifacts: Artifact[];
 }) {
-  const [activeTab, setActiveTab] = useState<RunTab>("progress");
+  const [activeTab, setActiveTab] = useState<RunTab>("pipeline");
 
   return (
     <section className="mb-6">
@@ -111,8 +91,8 @@ export function LaunchRunTabs({
       </div>
 
       <div className="mt-5 border-t border-border/30 pt-5">
-        {activeTab === "progress" ? (
-          <WorkflowTimeline stageRuns={stageRuns} embedded />
+        {activeTab === "pipeline" ? (
+          <PipelineView stageRuns={stageRuns} artifacts={artifacts} />
         ) : null}
         {activeTab === "sources" ? (
           <ResearchSourcesGrid
@@ -121,9 +101,6 @@ export function LaunchRunTabs({
             sourceStatuses={sourceStatuses}
             embedded
           />
-        ) : null}
-        {activeTab === "artifacts" ? (
-          <RunArtifactsPanel artifacts={artifacts} embedded />
         ) : null}
       </div>
     </section>

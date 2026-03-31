@@ -13,26 +13,28 @@ export function FundraisingAnglesGrid({ angles }: { angles: string[] }) {
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+      className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both px-6 py-6"
       style={{ animationDelay: "300ms", animationDuration: "500ms" }}
     >
-      <p className="mb-4 text-sm font-medium text-muted-foreground">
+      <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
         Fundraising angles
       </p>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-2.5 sm:grid-cols-2">
         {angles.map((angle) => {
           const [title, body] = inferTitle(angle);
           return (
             <div
               key={angle}
-              className="rounded-lg border border-chart-3/15 bg-chart-3/[0.025] px-4 py-3.5 transition-colors hover:bg-chart-3/[0.04]"
+              className="rounded-lg border border-border/30 bg-muted/[0.04] px-4 py-4 transition-colors hover:bg-muted/[0.08]"
             >
               {title ? (
-                <p className="mb-1.5 text-sm font-semibold text-chart-3/65">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/40">
                   {title}
                 </p>
               ) : null}
-              <p className="text-sm leading-7 text-foreground/85">{body}</p>
+              <p className="text-sm leading-relaxed text-foreground/85">
+                {body}
+              </p>
             </div>
           );
         })}
