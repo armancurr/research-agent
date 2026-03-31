@@ -43,7 +43,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const router = useRouter();
   const { signOut } = useAuthActions();
-  const { theme, setTheme } = useTheme();
+  const { theme, setThemeWithShutter } = useTheme();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -123,7 +123,7 @@ export function AppHeader({
             </PopoverTrigger>
             <PopoverContent className="w-80 p-0">
               <div className="p-2">
-                <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-muted-foreground">
                   <Palette size={12} weight="fill" aria-hidden />
                   Theme
                 </div>
@@ -143,15 +143,10 @@ export function AppHeader({
                             )}
                           />
                         }
-                        onClick={() => setTheme(option.value)}
+                        onClick={() => setThemeWithShutter(option.value)}
                       >
-                        <span className="flex min-w-0 flex-col">
-                          <span className="text-sm font-medium text-foreground">
-                            {option.label}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {option.value}
-                          </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {option.label}
                         </span>
                         <span className="flex size-5 items-center justify-center text-primary">
                           {isActive ? <Check size={16} weight="bold" /> : null}

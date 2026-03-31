@@ -77,6 +77,76 @@
   --sidebar-ring: #89ddff;
 }
 
+:root[data-app-theme="vesper-plus-plus"] {
+  --background: #101010;
+  --foreground: #ffffff;
+  --card: #161616;
+  --card-foreground: #ffffff;
+  --popover: #161616;
+  --popover-foreground: #ffffff;
+  --primary: #ffc799;
+  --primary-foreground: #000000;
+  --secondary: #1c1c1c;
+  --secondary-foreground: #ffffff;
+  --muted: #232323;
+  --muted-foreground: #a0a0a0;
+  --accent: #99ffe4;
+  --accent-foreground: #101010;
+  --destructive: #ff8080;
+  --border: #282828;
+  --input: #1c1c1c;
+  --ring: #ffc799;
+  --chart-1: #ffc799;
+  --chart-2: #99ffe4;
+  --chart-3: #fbadff;
+  --chart-4: #a0a0a0;
+  --chart-5: #ff8080;
+  --radius: 0.45rem;
+  --sidebar: #101010;
+  --sidebar-foreground: #a0a0a0;
+  --sidebar-primary: #ffc799;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #232323;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #282828;
+  --sidebar-ring: #ffc799;
+}
+
+:root[data-app-theme="celestial"] {
+  --background: #0b0c0f;
+  --foreground: #d5d8da;
+  --card: #14151b;
+  --card-foreground: #d5d8da;
+  --popover: #1b1c25;
+  --popover-foreground: #d5d8da;
+  --primary: #e95378;
+  --primary-foreground: #06060c;
+  --secondary: #2e303e;
+  --secondary-foreground: #d5d8da;
+  --muted: #2e303e;
+  --muted-foreground: #d5d8da80;
+  --accent: #25b0bc;
+  --accent-foreground: #06060c;
+  --destructive: #f43e5c;
+  --border: #22252e;
+  --input: #2e303e;
+  --ring: #e9436d;
+  --chart-1: #e95378;
+  --chart-2: #27d797;
+  --chart-3: #25b0bc;
+  --chart-4: #b877db;
+  --chart-5: #fab795;
+  --radius: 0.45rem;
+  --sidebar: #0e0f13;
+  --sidebar-foreground: #d5d8da80;
+  --sidebar-primary: #e95378;
+  --sidebar-primary-foreground: #06060c;
+  --sidebar-accent: #2e303e;
+  --sidebar-accent-foreground: #d5d8da;
+  --sidebar-border: #22252e;
+  --sidebar-ring: #e9436d;
+}
+
 @theme inline {
   --font-sans: var(--font-sans);
   --font-mono: var(--font-sans);
@@ -131,6 +201,14 @@ html {
 
 body {
   font-family: var(--font-sans), sans-serif;
+}
+
+body,
+body * {
+  transition-property:
+    background-color, color, border-color, box-shadow, fill, stroke;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
 }
 
 a {
@@ -198,6 +276,82 @@ textarea {
 
 .sidebar-transition {
   transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes theme-shutter-drop {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes theme-shutter-line {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(100vh + 4px));
+  }
+}
+
+.theme-shutter {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  background: var(--theme-shutter-background);
+  clip-path: inset(0 0 100% 0);
+  will-change: clip-path;
+  animation: theme-shutter-drop 820ms linear forwards;
+}
+
+.theme-shutter::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--theme-shutter-edge) 92%, white) 0%,
+    var(--theme-shutter-edge) 100%
+  );
+  box-shadow: 0 0 12px var(--theme-shutter-glow);
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  animation: theme-shutter-line 820ms linear forwards;
+}
+
+/* biome-ignore lint/correctness/noUnknownTypeSelector: View Transitions pseudo-element */
+::view-transition-group(root) {
+  animation-duration: 820ms;
+}
+
+/* biome-ignore lint/correctness/noUnknownTypeSelector: View Transitions pseudo-element */
+::view-transition-image-pair(root) {
+  isolation: auto;
+}
+
+/* biome-ignore lint/correctness/noUnknownTypeSelector: View Transitions pseudo-element */
+::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+
+/* biome-ignore lint/correctness/noUnknownTypeSelector: View Transitions pseudo-element */
+::view-transition-new(root) {
+  z-index: 2;
+  will-change: clip-path;
+  animation: theme-shutter-drop 820ms linear forwards;
+}
+
+.theme-shutter-line-only {
+  background: transparent;
+  clip-path: none;
+  animation: none;
 }
 
 @layer base {

@@ -8,10 +8,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { AppHeader } from "@/components/shared/app-header";
 import { LaunchChatHeaderActions } from "@/features/launch-chat/components/launch-chat-header-actions";
 import { LaunchPackagePreviewCard } from "@/features/launch-chat/components/launch-package-preview-card";
-import { ResearchSourcesGrid } from "@/features/launch-chat/components/research-sources-grid";
-import { RunArtifactsPanel } from "@/features/launch-chat/components/run-artifacts-panel";
+import { LaunchRunTabs } from "@/features/launch-chat/components/launch-run-tabs";
 import { StartupBriefCard } from "@/features/launch-chat/components/startup-brief-card";
-import { WorkflowTimeline } from "@/features/launch-chat/components/workflow-timeline";
 import { useLaunchStream } from "@/features/launch-chat/hooks/use-launch-stream";
 import { useViewMode } from "@/features/launch-chat/hooks/use-view-mode";
 import type { LaunchPackage, ResearchBucket } from "@/types/launch";
@@ -140,15 +138,13 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   const leftContent = (
     <>
       <StartupBriefCard brief={runData.run.briefSnapshot} />
-      <div className="space-y-6">
-        <WorkflowTimeline stageRuns={runData.stageRuns} />
-        <ResearchSourcesGrid
-          buckets={displayedBuckets}
-          latestMessages={sourceMessages}
-          sourceStatuses={sourceStatuses}
-        />
-        <RunArtifactsPanel artifacts={runData.artifacts} />
-      </div>
+      <LaunchRunTabs
+        stageRuns={runData.stageRuns}
+        buckets={displayedBuckets}
+        latestMessages={sourceMessages}
+        sourceStatuses={sourceStatuses}
+        artifacts={runData.artifacts}
+      />
     </>
   );
 
@@ -158,6 +154,23 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
       synthesis={displayedSynthesis}
       structuredPackage={persistedPackage}
     />
+  );
+
+  const unifiedContent = (
+    <div className="space-y-6">
+      <LaunchPackagePreviewCard
+        phase={displayedPhase}
+        synthesis={displayedSynthesis}
+        structuredPackage={persistedPackage}
+      />
+      <LaunchRunTabs
+        stageRuns={runData.stageRuns}
+        buckets={displayedBuckets}
+        latestMessages={sourceMessages}
+        sourceStatuses={sourceStatuses}
+        artifacts={runData.artifacts}
+      />
+    </div>
   );
 
   return (
@@ -192,20 +205,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
         ) : (
           <div className="mx-auto w-full max-w-5xl px-5 py-5 sm:px-6 lg:px-8">
             <StartupBriefCard brief={runData.run.briefSnapshot} />
-            <div className="space-y-6">
-              <WorkflowTimeline stageRuns={runData.stageRuns} />
-              <LaunchPackagePreviewCard
-                phase={displayedPhase}
-                synthesis={displayedSynthesis}
-                structuredPackage={persistedPackage}
-              />
-              <ResearchSourcesGrid
-                buckets={displayedBuckets}
-                latestMessages={sourceMessages}
-                sourceStatuses={sourceStatuses}
-              />
-              <RunArtifactsPanel artifacts={runData.artifacts} />
-            </div>
+            {unifiedContent}
           </div>
         )}
       </div>

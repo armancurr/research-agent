@@ -158,7 +158,13 @@ function StageCard({
   );
 }
 
-export function WorkflowTimeline({ stageRuns }: { stageRuns: StageRun[] }) {
+export function WorkflowTimeline({
+  stageRuns,
+  embedded = false,
+}: {
+  stageRuns: StageRun[];
+  embedded?: boolean;
+}) {
   const { stages, focusIdx, completedCount } = usePipeline(stageRuns);
   const total = stages.length;
   const allStagesComplete = total > 0 && completedCount === total;
@@ -196,6 +202,134 @@ export function WorkflowTimeline({ stageRuns }: { stageRuns: StageRun[] }) {
         ? "translateX(-90%)"
         : "translateX(-50%)";
 
+  const content = (
+    <>
+      {/* Progress bar area */}
+      <div className={cn("relative px-1.5", !embedded && "mt-5")}>
+        {/* Floating tooltip (only while running) */}
+        {isRunning && (
+          <div
+            className="pointer-events-none absolute z-10 mb-2.5"
+            style={{
+              left: `${progressPct}%`,
+              transform: tooltipTransform,
+              bottom: "calc(100% - 0.25rem)",
+            }}
+          >
+            <div className="rounded-md border border-primary/15 bg-card px-3 py-1.5 shadow-lg shadow-black/25">
+              <p className="whitespace-nowrap text-xs font-medium text-foreground/80">
+                {focusStage.label}
+              </p>
+              <p className="whitespace-nowrap text-[10px] text-primary/50">
+                In progress\u2026
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              width="10"
+              height="5"
+              viewBox="0 0 10 5"
+              className="mx-auto block"
+              style={{
+                marginLeft:
+                  progressPct < 20
+                    ? "10%"
+                    : progressPct > 80
+                      ? "calc(100% - 10% - 10px)"
+                      : "calc(50% - 5px)",
+              }}
+            >
+              <path d="M0 0 L5 5 L10 0" className="fill-card" />
+            </svg>
+          </div>
+        )}
+
+        {/* Track */}
+        <div className="relative flex h-5 items-center">
+          {/* Base line */}
+          <div className="absolute inset-x-0 h-[1.5px] rounded-full bg-border/30" />
+          {/* Filled line */}
+          <div
+            className="absolute h-[1.5px] rounded-full bg-primary/50 transition-[width] duration-700 ease-out"
+            style={{ width: `${progressPct}%` }}
+          />
+
+          {/* Dots */}
+          {stages.map((stage, i) => {
+            const left = total <= 1 ? 50 : (i / (total - 1)) * 100;
+            const isActive = i === focusIdx;
+            const isCompleted = stage.status === "completed";
+            const isFailed = stage.status === "failed";
+            const stageRunning = stage.status === "running";
+            const isPast = i < focusIdx;
+
+            return (
+              <div
+                key={stage.key}
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${left}%` }}
+              >
+                <div
+                  className={cn(
+                    "rounded-full transition-all duration-500",
+                    isActive && stageRunning && "h-3.5 w-3.5 bg-primary",
+                    isActive && isCompleted && "h-3 w-3 bg-chart-2",
+                    isActive && isFailed && "h-3.5 w-3.5 bg-destructive",
+                    isActive &&
+                      stage.status === "pending" &&
+                      "h-3 w-3 border-2 border-primary/40 bg-background",
+                    !isActive && isCompleted && "h-2 w-2 bg-primary/70",
+                    !isActive && isFailed && "h-2 w-2 bg-destructive/60",
+                    !isActive &&
+                      !isCompleted &&
+                      !isFailed &&
+                      isPast &&
+                      "h-2 w-2 bg-primary/40",
+                    !isActive &&
+                      stage.status === "pending" &&
+                      !isPast &&
+                      "h-[7px] w-[7px] border border-border/50 bg-background",
+                  )}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Stage detail cards */}
+      <div className="mt-5 flex gap-2">
+        {prevStage ? (
+          <StageCard
+            stage={prevStage}
+            stepNumber={focusIdx}
+            variant="previous"
+          />
+        ) : (
+          <div className="flex-1" />
+        )}
+        <StageCard
+          stage={focusStage}
+          stepNumber={focusIdx + 1}
+          variant="current"
+        />
+        {nextStage ? (
+          <StageCard
+            stage={nextStage}
+            stepNumber={focusIdx + 2}
+            variant="next"
+          />
+        ) : (
+          <div className="flex-1" />
+        )}
+      </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="select-none">{content}</div>;
+  }
+
   return (
     <section className="mb-6 select-none">
       <Collapsible open={open} onOpenChange={setOpen}>
@@ -226,125 +360,7 @@ export function WorkflowTimeline({ stageRuns }: { stageRuns: StageRun[] }) {
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
-          {/* Progress bar area */}
-          <div className="relative mt-5 px-1.5">
-            {/* Floating tooltip (only while running) */}
-            {isRunning && (
-              <div
-                className="pointer-events-none absolute z-10 mb-2.5"
-                style={{
-                  left: `${progressPct}%`,
-                  transform: tooltipTransform,
-                  bottom: "calc(100% - 0.25rem)",
-                }}
-              >
-                <div className="rounded-md border border-primary/15 bg-card px-3 py-1.5 shadow-lg shadow-black/25">
-                  <p className="whitespace-nowrap text-xs font-medium text-foreground/80">
-                    {focusStage.label}
-                  </p>
-                  <p className="whitespace-nowrap text-[10px] text-primary/50">
-                    In progress\u2026
-                  </p>
-                </div>
-                <svg
-                  aria-hidden="true"
-                  width="10"
-                  height="5"
-                  viewBox="0 0 10 5"
-                  className="mx-auto block"
-                  style={{
-                    marginLeft:
-                      progressPct < 20
-                        ? "10%"
-                        : progressPct > 80
-                          ? "calc(100% - 10% - 10px)"
-                          : "calc(50% - 5px)",
-                  }}
-                >
-                  <path d="M0 0 L5 5 L10 0" className="fill-card" />
-                </svg>
-              </div>
-            )}
-
-            {/* Track */}
-            <div className="relative flex h-5 items-center">
-              {/* Base line */}
-              <div className="absolute inset-x-0 h-[1.5px] rounded-full bg-border/30" />
-              {/* Filled line */}
-              <div
-                className="absolute h-[1.5px] rounded-full bg-primary/50 transition-[width] duration-700 ease-out"
-                style={{ width: `${progressPct}%` }}
-              />
-
-              {/* Dots */}
-              {stages.map((stage, i) => {
-                const left = total <= 1 ? 50 : (i / (total - 1)) * 100;
-                const isActive = i === focusIdx;
-                const isCompleted = stage.status === "completed";
-                const isFailed = stage.status === "failed";
-                const stageRunning = stage.status === "running";
-                const isPast = i < focusIdx;
-
-                return (
-                  <div
-                    key={stage.key}
-                    className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    style={{ left: `${left}%` }}
-                  >
-                    <div
-                      className={cn(
-                        "rounded-full transition-all duration-500",
-                        isActive && stageRunning && "h-3.5 w-3.5 bg-primary",
-                        isActive && isCompleted && "h-3 w-3 bg-chart-2",
-                        isActive && isFailed && "h-3.5 w-3.5 bg-destructive",
-                        isActive &&
-                          stage.status === "pending" &&
-                          "h-3 w-3 border-2 border-primary/40 bg-background",
-                        !isActive && isCompleted && "h-2 w-2 bg-primary/70",
-                        !isActive && isFailed && "h-2 w-2 bg-destructive/60",
-                        !isActive &&
-                          !isCompleted &&
-                          !isFailed &&
-                          isPast &&
-                          "h-2 w-2 bg-primary/40",
-                        !isActive &&
-                          stage.status === "pending" &&
-                          !isPast &&
-                          "h-[7px] w-[7px] border border-border/50 bg-background",
-                      )}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Stage detail cards */}
-          <div className="mt-5 flex gap-2">
-            {prevStage ? (
-              <StageCard
-                stage={prevStage}
-                stepNumber={focusIdx}
-                variant="previous"
-              />
-            ) : (
-              <div className="flex-1" />
-            )}
-            <StageCard
-              stage={focusStage}
-              stepNumber={focusIdx + 1}
-              variant="current"
-            />
-            {nextStage ? (
-              <StageCard
-                stage={nextStage}
-                stepNumber={focusIdx + 2}
-                variant="next"
-              />
-            ) : (
-              <div className="flex-1" />
-            )}
-          </div>
+          {content}
         </CollapsibleContent>
       </Collapsible>
     </section>

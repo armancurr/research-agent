@@ -367,10 +367,33 @@ function ArtifactRow({ artifact }: { artifact: Artifact }) {
   );
 }
 
-export function RunArtifactsPanel({ artifacts }: { artifacts: Artifact[] }) {
+export function RunArtifactsPanel({
+  artifacts,
+  embedded = false,
+}: {
+  artifacts: Artifact[];
+  embedded?: boolean;
+}) {
   const [sectionOpen, setSectionOpen] = useState(true);
 
   if (artifacts.length === 0) return null;
+
+  const content = (
+    <div
+      className={cn(
+        "max-w-full divide-y divide-border/30 border-y border-border/30",
+        !embedded && "mt-5",
+      )}
+    >
+      {artifacts.map((artifact) => (
+        <ArtifactRow key={artifact._id} artifact={artifact} />
+      ))}
+    </div>
+  );
+
+  if (embedded) {
+    return <div className="max-w-full select-none">{content}</div>;
+  }
 
   return (
     <section className="mb-6 max-w-full select-none">
@@ -402,11 +425,7 @@ export function RunArtifactsPanel({ artifacts }: { artifacts: Artifact[] }) {
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
-          <div className="mt-5 max-w-full divide-y divide-border/30 border-y border-border/30">
-            {artifacts.map((artifact) => (
-              <ArtifactRow key={artifact._id} artifact={artifact} />
-            ))}
-          </div>
+          {content}
         </CollapsibleContent>
       </Collapsible>
     </section>

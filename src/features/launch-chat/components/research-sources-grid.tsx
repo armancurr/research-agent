@@ -19,6 +19,7 @@ export function ResearchSourcesGrid({
   buckets,
   latestMessages,
   sourceStatuses,
+  embedded = false,
 }: {
   buckets: Map<string, ResearchBucket>;
   latestMessages: Partial<Record<ResearchBucket["source"], string>>;
@@ -28,8 +29,34 @@ export function ResearchSourcesGrid({
       "waiting" | "running" | "completed" | "failed"
     >
   >;
+  embedded?: boolean;
 }) {
   const [open, setOpen] = useState(true);
+
+  const content = (
+    <div
+      className={cn("grid gap-x-6 gap-y-3 sm:grid-cols-2", !embedded && "mt-5")}
+    >
+      {sourceOrder.map((sourceKey) => {
+        const meta = sourceMeta[sourceKey];
+        return (
+          <ResearchSourceCard
+            key={sourceKey}
+            bucket={buckets.get(sourceKey)}
+            icon={meta.icon}
+            iconClassName={meta.iconClassName}
+            label={meta.label}
+            latestMessage={latestMessages[sourceKey]}
+            status={sourceStatuses[sourceKey]}
+          />
+        );
+      })}
+    </div>
+  );
+
+  if (embedded) {
+    return <div className="max-w-full select-none">{content}</div>;
+  }
 
   return (
     <section className="mb-6 max-w-full select-none">
@@ -61,22 +88,7 @@ export function ResearchSourcesGrid({
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[ending-style]:animate-out data-[ending-style]:fade-out-0 data-[starting-style]:animate-in data-[starting-style]:fade-in-0">
-          <div className="mt-5 grid gap-x-6 gap-y-3 sm:grid-cols-2">
-            {sourceOrder.map((sourceKey) => {
-              const meta = sourceMeta[sourceKey];
-              return (
-                <ResearchSourceCard
-                  key={sourceKey}
-                  bucket={buckets.get(sourceKey)}
-                  icon={meta.icon}
-                  iconClassName={meta.iconClassName}
-                  label={meta.label}
-                  latestMessage={latestMessages[sourceKey]}
-                  status={sourceStatuses[sourceKey]}
-                />
-              );
-            })}
-          </div>
+          {content}
         </CollapsibleContent>
       </Collapsible>
     </section>
