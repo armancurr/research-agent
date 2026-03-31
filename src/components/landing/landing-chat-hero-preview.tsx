@@ -5,34 +5,101 @@ import {
   CaretDown,
   CaretRight,
   CheckIcon,
+  CubeIcon,
   Globe,
-  MagnifyingGlass,
-  Package,
+  GlobeSimpleIcon,
+  HourglassIcon,
   Plus,
   SignOut,
-  Timer,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
-import { LaunchMarkdownBody } from "@/features/launch-chat/components/launch-markdown";
+import { Card } from "@/components/ui/card";
+import { LaunchPackageStructuredView } from "@/features/launch-chat/components/package-view/launch-package-structured-view";
 import {
   sourceMeta,
   sourceOrder,
 } from "@/features/launch-chat/constants/source-meta";
 import { cn } from "@/lib/utils";
+import type { LaunchPackage } from "@/types/launch";
+
+const DEMO_PACKAGE: LaunchPackage = {
+  strategicAngle:
+    "Fieldstone brings the independent bookshop back to neighborhoods that lost theirs\u2014curated picks, community events, and a human story no delivery box can replace.",
+  launchScript: {
+    headline: "The Bookshop That Comes to You.",
+    hook: "Remember the quiet hum of your town\u2019s old bookstore? Fieldstone brings that feeling back\u2014on wheels, with curated shelves and membership perks that keep readers coming back.",
+    bodyBeats: [
+      "We park a converted vintage truck in underserved neighborhoods, rural towns, and mid-sized cities. Each stop is a curated pop-up: staff picks, local authors, and seasonal collections.",
+      "Membership covers reserved drops, early access to events, and a quarterly book box\u2014so repeat visits feel like belonging, not a one-off sale.",
+      "Prime delivery is fast; Fieldstone is restorative. We compete on trust, taste, and place\u2014not speed alone.",
+    ],
+    ctaOptions: [
+      "Reserve your neighborhood stop\u2014join the waitlist",
+      "Become a founding member\u2014early bird pricing",
+    ],
+  },
+  hookOptions: [
+    "Remember the quiet hum of your town\u2019s old bookstore? Fieldstone brings that feeling back\u2014on wheels, with curated shelves and membership perks that keep readers coming back.",
+    "Amazon delivers boxes. Fieldstone delivers belonging. A curated mobile bookshop that parks in your neighborhood and stays until you\u2019ve found the perfect read.",
+    "There are 3,000 fewer independent bookstores in America than there were in 2000. Fieldstone is building the next 3,000\u2014one neighborhood at a time.",
+    "Your city lost its bookstore. We\u2019re bringing it back\u2014not in a strip mall, but in a converted vintage truck, staffed by readers who know your name.",
+  ],
+  researchSignals: [
+    "Book desert: 30% of US counties lack a single bookstore within reasonable driving distance",
+    "Membership model: subscription commerce in media verticals shows 40%+ retention at 12 months",
+    "Community premium: consumers pay 15\u201325% more for locally curated vs algorithmic recommendations",
+    "Mobile retail: pop-up and mobile retail saw 23% YoY growth post-pandemic in underserved markets",
+    "BookTok fatigue: rising sentiment for slow reading and offline discovery in reader communities",
+  ],
+  contentStrategy: {
+    positioning:
+      "Fieldstone is the neighborhood bookshop reimagined for a delivery-first world\u2014mobile, membership-driven, and rooted in community trust over algorithmic convenience.",
+    campaignMoves: [
+      "Partner with 5 local authors in launch cities for co-branded pop-up events",
+      "Run a \u2018What did your bookstore mean to you?\u2019 story campaign on social",
+      "Launch founding member waitlist with early-bird pricing and city vote",
+    ],
+    channelPlan: [
+      "Instagram and TikTok: weekly \u2018truck diary\u2019 video series showing stops, readers, and picks",
+      "Newsletter: curated monthly reading list with member-only first editions",
+      "Local press: pitch human-interest angle to city papers in launch markets",
+    ],
+  },
+  fundraisingAngles: [
+    "Market timing: indie retail renaissance meets subscription commerce\u2014Fieldstone sits at the intersection of two accelerating trends",
+    "Unit economics: mobile format eliminates fixed lease costs while maintaining premium AOV through curated selection",
+    "Community moat: each neighborhood stop builds local loyalty that no digital-first competitor can replicate",
+    "Expansion playbook: asset-light model scales city-by-city with minimal capex per new market",
+  ],
+  nextMoves: [
+    "Finalize first three launch cities based on book desert data and waitlist density",
+    "Secure vintage truck conversion partner and design the branded mobile experience",
+    "Open founding member waitlist with referral incentives and city unlock thresholds",
+    "Build publisher relationships for exclusive early access and local author partnerships",
+    "Plan grand opening weekend with local press, social coverage, and community event",
+  ],
+};
 
 const DEMO_MARKDOWN = `## Strategic Angle
 
-Fieldstone brings the independent bookshop back to neighborhoods that lost theirs—curated picks, community events, and a human story no delivery box can replace.
+Fieldstone brings the independent bookshop back to neighborhoods that lost theirs\u2014curated picks, community events, and a human story no delivery box can replace.
+
+---
 
 ## Launch Script
-
 **Headline:** The Bookshop That Comes to You.
 
-**Hook:** Remember the quiet hum of your town's old bookstore? Fieldstone brings that feeling back—on wheels, with curated shelves and membership perks that keep readers coming back.
+**Hook:** Remember the quiet hum of your town\u2019s old bookstore? Fieldstone brings that feeling back\u2014on wheels, with curated shelves and membership perks that keep readers coming back.
+
+---
 
 - We park a converted vintage truck in underserved neighborhoods, rural towns, and mid-sized cities. Each stop is a curated pop-up: staff picks, local authors, and seasonal collections.
-- Membership covers reserved drops, early access to events, and a quarterly book box—so repeat visits feel like belonging, not a one-off sale.
-- Prime delivery is fast; Fieldstone is restorative. We compete on trust, taste, and place—not speed alone.`;
+- Membership covers reserved drops, early access to events, and a quarterly book box\u2014so repeat visits feel like belonging, not a one-off sale.
+- Prime delivery is fast; Fieldstone is restorative. We compete on trust, taste, and place\u2014not speed alone.
+
+**CTA Options:**
+- Reserve your neighborhood stop\u2014join the waitlist
+- Become a founding member\u2014early bird pricing`;
 
 const PIPELINE_LABELS = [
   "Intake",
@@ -166,9 +233,12 @@ export function LandingChatHeroPreview() {
             <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-5 sm:py-5 lg:px-8">
               {/* StartupBriefCard */}
               <section className="mb-5">
-                <div className="border-b border-border/40 pb-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <Card className="gap-0 p-6 shadow-md shadow-black/20 ring-1 ring-foreground/8 sm:p-8">
+                  <p className="mb-4 text-sm font-medium text-muted-foreground">
+                    Startup brief
+                  </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <h2 className="text-lg font-medium text-foreground/95 sm:text-xl">
                         Fieldstone
                       </h2>
@@ -177,61 +247,78 @@ export function LandingChatHeroPreview() {
                         community culture, subscription commerce, events.
                       </p>
                     </div>
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground sm:text-sm">
-                      Show full brief
+                    <span className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground sm:text-sm">
+                      Show full
                       <CaretDown size={14} className="shrink-0" />
                     </span>
                   </div>
-                  <div className="mt-3 border border-border/30 bg-background/20 px-3 py-3 sm:px-4 sm:py-4">
+                  <div className="mt-5">
                     <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-3">
                       <div className="flex gap-2 text-sm leading-relaxed">
-                        <span className="text-muted-foreground">Company:</span>
-                        <span className="text-foreground/85">
+                        <span className="shrink-0 text-muted-foreground">
+                          Company:
+                        </span>
+                        <span className="min-w-0 text-foreground/85">
                           Fieldstone Press
                         </span>
                       </div>
                       <div className="flex gap-2 text-sm leading-relaxed">
-                        <span className="text-muted-foreground">Product:</span>
-                        <span className="text-foreground/85">Fieldstone</span>
+                        <span className="shrink-0 text-muted-foreground">
+                          Product:
+                        </span>
+                        <span className="min-w-0 text-foreground/85">
+                          Fieldstone
+                        </span>
                       </div>
                       <div className="flex gap-2 text-sm leading-relaxed sm:col-span-2 xl:col-span-1">
-                        <span className="text-muted-foreground">Audience:</span>
-                        <span className="text-foreground/85">
+                        <span className="shrink-0 text-muted-foreground">
+                          Audience:
+                        </span>
+                        <span className="min-w-0 text-foreground/85">
                           Lifelong readers aged 30–65 in small cities and rural
                           areas seeking curation and community—not just
                           convenience.
                         </span>
                       </div>
                       <div className="flex gap-2 text-sm leading-relaxed sm:col-span-2 xl:col-span-3">
-                        <span className="text-muted-foreground">Category:</span>
-                        <span className="text-foreground/85">
+                        <span className="shrink-0 text-muted-foreground">
+                          Category:
+                        </span>
+                        <span className="min-w-0 text-foreground/85">
                           Independent publishing, retail, community culture,
                           subscription commerce, events.
                         </span>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               </section>
 
               {/* WorkflowTimeline (expanded, completed run) */}
               <section className="mb-5 select-none">
-                <div className="flex w-full items-center gap-2 rounded-md py-1.5 text-left">
+                <div className="flex w-full items-start gap-2 rounded-md py-1.5 text-left">
                   <CaretRight
                     size={12}
                     weight="bold"
                     className="shrink-0 rotate-90 text-muted-foreground/50"
                   />
-                  <Timer
-                    size={16}
-                    weight="fill"
-                    className="shrink-0 text-[#a8cc7c]"
-                  />
-                  <h2 className="text-sm font-medium text-foreground/85">
-                    Progress
-                  </h2>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <HourglassIcon
+                        size={16}
+                        weight="fill"
+                        className="shrink-0 text-[#a8cc7c]"
+                      />
+                      <h2 className="text-sm font-medium text-foreground/85">
+                        Progress
+                      </h2>
+                    </div>
+                    <p className="text-xs text-muted-foreground/65">
+                      Track each step as your research run moves forward.
+                    </p>
+                  </div>
                 </div>
-                <div className="relative mt-2 px-1.5">
+                <div className="relative mt-5 px-1.5">
                   <div className="relative flex h-5 items-center">
                     <div className="absolute inset-x-0 h-[1.5px] rounded-full bg-border/30" />
                     <div
@@ -290,38 +377,40 @@ export function LandingChatHeroPreview() {
               </section>
 
               {/* LaunchPackagePreviewCard */}
-              <section className="mb-5 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
+              <section className="mb-5">
                 <div className="border-b border-border/40 pb-5">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground sm:text-sm">
-                      Show full package
-                      <CaretDown size={14} className="shrink-0" />
-                    </span>
-                  </div>
-                  <div className="border border-border/30 bg-background/20 px-3 py-3 sm:px-4 sm:py-4">
-                    <LaunchMarkdownBody markdown={DEMO_MARKDOWN} />
-                  </div>
+                  <LaunchPackageStructuredView
+                    pkg={DEMO_PACKAGE}
+                    markdown={DEMO_MARKDOWN}
+                  />
                 </div>
               </section>
 
               {/* ResearchSourcesGrid */}
               <section className="mb-5 max-w-full select-none">
-                <div className="flex w-full items-center gap-2 rounded-md py-1.5 text-left">
+                <div className="flex w-full items-start gap-2 rounded-md py-1.5 text-left">
                   <CaretRight
                     size={12}
                     weight="bold"
                     className="shrink-0 rotate-90 text-muted-foreground/50"
                   />
-                  <MagnifyingGlass
-                    size={16}
-                    weight="fill"
-                    className="shrink-0 text-[#e394dc]"
-                  />
-                  <h2 className="text-sm font-medium text-foreground/85">
-                    Sources
-                  </h2>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <GlobeSimpleIcon
+                        size={16}
+                        weight="fill"
+                        className="shrink-0 text-[#e394dc]"
+                      />
+                      <h2 className="text-sm font-medium text-foreground/85">
+                        Sources
+                      </h2>
+                    </div>
+                    <p className="text-xs text-muted-foreground/65">
+                      Review the live research inputs feeding this run.
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-3">
+                <div className="mt-5 grid gap-x-4 gap-y-1 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-3">
                   {sourceOrder.map((key) => {
                     const meta = sourceMeta[key];
                     const Icon = meta.icon;
@@ -377,20 +466,27 @@ export function LandingChatHeroPreview() {
 
               {/* RunArtifactsPanel (collapsed header only) */}
               <section className="mb-2 max-w-full select-none">
-                <div className="flex w-full items-center gap-2 rounded-md py-1.5 text-left">
+                <div className="flex w-full items-start gap-2 rounded-md py-1.5 text-left">
                   <CaretRight
                     size={12}
                     weight="bold"
                     className="shrink-0 text-muted-foreground/50"
                   />
-                  <Package
-                    size={16}
-                    weight="fill"
-                    className="shrink-0 text-[#efb080]"
-                  />
-                  <h2 className="text-sm font-medium text-foreground/85">
-                    Artifacts
-                  </h2>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <CubeIcon
+                        size={16}
+                        weight="fill"
+                        className="shrink-0 text-[#efb080]"
+                      />
+                      <h2 className="text-sm font-medium text-foreground/85">
+                        Artifacts
+                      </h2>
+                    </div>
+                    <p className="text-xs text-muted-foreground/65">
+                      Open the saved outputs generated during this run.
+                    </p>
+                  </div>
                 </div>
               </section>
             </div>

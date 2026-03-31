@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { ConvexAuthProvider } from "@/components/providers/convex-auth-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
@@ -24,12 +25,16 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
+      data-app-theme="cursor-dark"
+      suppressHydrationWarning
       className={cn("dark h-full", "antialiased", geist.variable, "font-sans")}
     >
       <body className="flex min-h-full flex-col">
         <ConvexAuthProvider>
-          {children}
-          <Toaster />
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </ConvexAuthProvider>
       </body>
     </html>
