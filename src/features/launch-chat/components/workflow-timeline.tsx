@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, HourglassIcon } from "@phosphor-icons/react";
+import { CaretRight, Timer } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Collapsible,
@@ -344,7 +344,7 @@ export function WorkflowTimeline({
           />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <HourglassIcon
+              <Timer
                 size={16}
                 weight="fill"
                 className="shrink-0 text-[#a8cc7c]"

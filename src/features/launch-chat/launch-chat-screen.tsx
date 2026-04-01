@@ -158,17 +158,17 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
 
   const unifiedContent = (
     <div className="space-y-6">
-      <LaunchPackagePreviewCard
-        phase={displayedPhase}
-        synthesis={displayedSynthesis}
-        structuredPackage={persistedPackage}
-      />
       <LaunchRunTabs
         stageRuns={runData.stageRuns}
         buckets={displayedBuckets}
         latestMessages={sourceMessages}
         sourceStatuses={sourceStatuses}
         artifacts={runData.artifacts}
+      />
+      <LaunchPackagePreviewCard
+        phase={displayedPhase}
+        synthesis={displayedSynthesis}
+        structuredPackage={persistedPackage}
       />
     </div>
   );

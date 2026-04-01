@@ -147,40 +147,58 @@ export function PipelineView({
 
   return (
     <div className="select-none">
-      <div className="divide-y divide-border/20 rounded-md border border-border/25 bg-muted/[0.03]">
-        {stages.map((stage, i) => {
-          const stageArtifactTypes = STAGE_ARTIFACT_TYPES[stage.key] ?? [];
-          const stageArtifacts = stageArtifactTypes.flatMap(
-            (type) => artifactsByType.get(type) ?? [],
-          );
-          // Only treat as "live" while the stage is actively running. If we use
-          // focusIdx alone, the last completed stage stays focused and every
-          // artifact in multi-artifact stages (e.g. finalized) stays expanded.
-          const isLiveStage = i === focusIdx && stage.status === "running";
-
-          if (stage.status === "running" && stageArtifacts.length === 0) {
-            // Show a pulsing "in progress" row while the stage is working
-            return (
-              <div
-                key={stage.key}
-                className="px-3 py-3 text-sm text-muted-foreground/70 animate-in fade-in duration-300"
-              >
-                {STAGE_RUNNING_MESSAGES[stage.key] ?? "Working…"}
-              </div>
+      <div className="overflow-x-auto overscroll-x-contain pb-1">
+        <div className="flex min-w-full snap-x snap-mandatory gap-3">
+          {stages.map((stage, i) => {
+            const stageArtifactTypes = STAGE_ARTIFACT_TYPES[stage.key] ?? [];
+            const stageArtifacts = stageArtifactTypes.flatMap(
+              (type) => artifactsByType.get(type) ?? [],
             );
-          }
+            // Only treat as "live" while the stage is actively running. If we use
+            // focusIdx alone, the last completed stage stays focused and every
+            // artifact in multi-artifact stages (e.g. finalized) stays expanded.
+            const isLiveStage = i === focusIdx && stage.status === "running";
 
-          if (stageArtifacts.length === 0) return null;
+            if (stage.status === "running" && stageArtifacts.length === 0) {
+              // Show a pulsing "in progress" row while the stage is working
+              return (
+                <div
+                  key={stage.key}
+                  className="w-[min(420px,85vw)] min-w-[280px] shrink-0 snap-start rounded-md border border-border/30 bg-muted/[0.03] p-3 animate-in fade-in duration-300"
+                >
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground/50">
+                    {stage.label}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground/70">
+                    {STAGE_RUNNING_MESSAGES[stage.key] ?? "Working…"}
+                  </p>
+                </div>
+              );
+            }
 
-          return stageArtifacts.map((artifact) => (
-            <ArtifactRow
-              key={artifact._id}
-              artifact={artifact}
-              isLive={isLiveStage}
-              description={getArtifactDescription(artifact.artifactType)}
-            />
-          ));
-        })}
+            if (stageArtifacts.length === 0) return null;
+
+            return stageArtifacts.map((artifact, artifactIndex) => (
+              <div
+                key={`${stage.key}-${artifact._id}`}
+                className="w-[min(420px,85vw)] min-w-[280px] shrink-0 snap-start space-y-2"
+              >
+                <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground/50">
+                  {stage.label}
+                  {stageArtifacts.length > 1
+                    ? ` (${artifactIndex + 1}/${stageArtifacts.length})`
+                    : ""}
+                </p>
+                <ArtifactRow
+                  artifact={artifact}
+                  isLive={isLiveStage}
+                  description={getArtifactDescription(artifact.artifactType)}
+                  variant="exposed"
+                />
+              </div>
+            ));
+          })}
+        </div>
       </div>
     </div>
   );

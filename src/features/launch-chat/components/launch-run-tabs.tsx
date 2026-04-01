@@ -1,11 +1,11 @@
 "use client";
 
-import { GlobeSimpleIcon, HourglassIcon } from "@phosphor-icons/react";
+import { GlobeSimpleIcon, Timer } from "@phosphor-icons/react";
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Artifact } from "@/features/launch-chat/components/artifact-row";
 import { PipelineView } from "@/features/launch-chat/components/pipeline-view";
 import { ResearchSourcesGrid } from "@/features/launch-chat/components/research-sources-grid";
-import { cn } from "@/lib/utils";
 import type { ResearchBucket } from "@/types/launch";
 
 type StageRun = {
@@ -23,20 +23,17 @@ type RunTab = "pipeline" | "sources";
 const tabs: Array<{
   value: RunTab;
   label: string;
-  icon: typeof HourglassIcon;
-  iconClassName: string;
+  icon: typeof Timer;
 }> = [
   {
     value: "pipeline",
     label: "Pipeline",
-    icon: HourglassIcon,
-    iconClassName: "text-[#a8cc7c]",
+    icon: Timer,
   },
   {
     value: "sources",
     label: "Sources",
     icon: GlobeSimpleIcon,
-    iconClassName: "text-[#e394dc]",
   },
 ];
 
@@ -62,47 +59,50 @@ export function LaunchRunTabs({
 
   return (
     <section className="mb-6">
-      <div className="flex gap-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.value;
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as RunTab)}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.value;
+            return (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="flex items-center gap-2"
+              >
+                <Icon
+                  size={16}
+                  weight={isActive ? "fill" : "regular"}
+                  className="shrink-0"
+                />
+                {tab.label}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
 
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setActiveTab(tab.value)}
-              className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                isActive
-                  ? "border-border bg-card text-foreground shadow-sm shadow-black/15"
-                  : "border-border/60 bg-background text-muted-foreground hover:bg-muted/35 hover:text-foreground/80",
-              )}
-            >
-              <Icon
-                size={16}
-                weight="fill"
-                className={cn("shrink-0", tab.iconClassName)}
-              />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-5 border-t border-border/30 pt-5">
-        {activeTab === "pipeline" ? (
+        <TabsContent
+          value="pipeline"
+          className="mt-5 border-t border-border/30 pt-5"
+        >
           <PipelineView stageRuns={stageRuns} artifacts={artifacts} />
-        ) : null}
-        {activeTab === "sources" ? (
+        </TabsContent>
+        <TabsContent
+          value="sources"
+          className="mt-5 border-t border-border/30 pt-5"
+        >
           <ResearchSourcesGrid
             buckets={buckets}
             latestMessages={latestMessages}
             sourceStatuses={sourceStatuses}
             embedded
           />
-        ) : null}
-      </div>
+        </TabsContent>
+      </Tabs>
     </section>
   );
 }

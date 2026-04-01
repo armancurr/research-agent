@@ -8,9 +8,9 @@ import {
   CubeIcon,
   Globe,
   GlobeSimpleIcon,
-  HourglassIcon,
   Plus,
   SignOut,
+  Timer,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -304,7 +304,7 @@ export function LandingChatHeroPreview() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <HourglassIcon
+                      <Timer
                         size={16}
                         weight="fill"
                         className="shrink-0 text-[#a8cc7c]"

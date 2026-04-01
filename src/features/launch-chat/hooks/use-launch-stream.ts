@@ -105,7 +105,10 @@ export function useLaunchStream() {
         return;
       }
 
-      const message = getErrorMessage(err, "Stream failed");
+      const message = getErrorMessage(
+        err,
+        "The research run stopped unexpectedly. Please try again.",
+      );
       setError(message);
       setPhase("error");
       toast.error(message);
