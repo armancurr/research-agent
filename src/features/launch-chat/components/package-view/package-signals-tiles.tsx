@@ -17,10 +17,10 @@ export function PackageSignalsTiles({ signals }: { signals: string[] }) {
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+      className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both px-6 py-6"
       style={{ animationDelay: "180ms", animationDuration: "500ms" }}
     >
-      <p className="mb-4 text-sm font-medium text-muted-foreground">
+      <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
         Research signals
       </p>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -29,11 +29,11 @@ export function PackageSignalsTiles({ signals }: { signals: string[] }) {
           return (
             <div
               key={signal}
-              className="rounded-md border border-border/25 bg-muted/[0.08] px-3.5 py-3 transition-colors hover:bg-muted/15"
+              className="rounded-md border border-border/30 bg-muted/[0.04] px-3.5 py-3 transition-colors hover:bg-muted/[0.08]"
             >
               <p className="text-sm leading-relaxed text-foreground/80">
                 {lead ? (
-                  <span className="font-medium text-foreground/95">
+                  <span className="font-medium text-foreground/90">
                     {lead}{" "}
                   </span>
                 ) : null}

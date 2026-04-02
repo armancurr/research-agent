@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import {
   type CSSProperties,
   createContext,
@@ -37,7 +38,7 @@ function readStoredTheme(): AppTheme {
 }
 
 const SHUTTER_DURATION_MS = 820;
-const THEME_SWAP_MS = 560;
+const THEME_SWAP_MS = 280;
 
 type DocumentWithViewTransition = Document & {
   startViewTransition?: (callback: () => void | Promise<void>) => {
@@ -103,12 +104,14 @@ function setTransitionThemeVars(theme: AppTheme | null) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [theme, setTheme] = useState<AppTheme>(DEFAULT_APP_THEME);
   const [transitionTheme, setTransitionTheme] = useState<AppTheme | null>(null);
   const [transitionMode, setTransitionMode] = useState<TransitionMode | null>(
     null,
   );
   const timeoutIdsRef = useRef<number[]>([]);
+  const shouldUseFallbackTransition = pathname.startsWith("/chat/");
 
   useEffect(() => {
     return () => {
@@ -158,7 +161,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     const doc = document as DocumentWithViewTransition;
 
-    if (doc.startViewTransition) {
+    if (doc.startViewTransition && !shouldUseFallbackTransition) {
       clearTransitionTimers();
       setTransitionTheme(nextTheme);
       setTransitionMode("view-transition");

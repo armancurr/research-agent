@@ -27,12 +27,30 @@ export const appThemes = [
     },
   },
   {
+    value: "dark-magic",
+    label: "Dark Magic",
+    transition: {
+      background: "#eaeaff",
+      edge: "#00d169",
+      glow: "rgba(0, 209, 105, 0.2)",
+    },
+  },
+  {
     value: "noir-poimandres-darker",
     label: "Noir Poimandres Darker",
     transition: {
       background: "#0f1017",
       edge: "#add7ff",
       glow: "rgba(173, 215, 255, 0.22)",
+    },
+  },
+  {
+    value: "spacemacs",
+    label: "Spacemacs",
+    transition: {
+      background: "#fbf8ef",
+      edge: "#9380b2",
+      glow: "rgba(147, 128, 178, 0.18)",
     },
   },
   {

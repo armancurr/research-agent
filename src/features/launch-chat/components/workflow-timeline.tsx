@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, HourglassIcon } from "@phosphor-icons/react";
+import { CaretRight, Timer } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Collapsible,
@@ -16,7 +16,7 @@ type StageRun = {
   completedAt?: number;
   stageKey: string;
   startedAt: number;
-  status: "running" | "completed" | "failed";
+  status: "running" | "completed" | "stopped" | "failed";
   summary?: string;
 };
 
@@ -32,7 +32,7 @@ const PIPELINE_STAGES = [
   "finalized",
 ] as const;
 
-type StageStatus = "completed" | "running" | "failed" | "pending";
+type StageStatus = "completed" | "running" | "stopped" | "failed" | "pending";
 
 type DerivedStage = {
   key: string;
@@ -53,6 +53,8 @@ function statusText(stage: DerivedStage) {
       return "In progress\u2026";
     case "failed":
       return duration ? `Failed \u00b7 ${duration}` : "Failed";
+    case "stopped":
+      return duration ? `Stopped \u00b7 ${duration}` : "Stopped";
     case "completed":
       return duration ?? "Done";
     default:
@@ -83,7 +85,11 @@ function usePipeline(stageRuns: StageRun[]) {
     let focusIdx = stages.findIndex((s) => s.status === "running");
     if (focusIdx === -1) {
       for (let i = stages.length - 1; i >= 0; i--) {
-        if (stages[i].status === "completed" || stages[i].status === "failed") {
+        if (
+          stages[i].status === "completed" ||
+          stages[i].status === "stopped" ||
+          stages[i].status === "failed"
+        ) {
           focusIdx = i;
           break;
         }
@@ -110,13 +116,15 @@ function StageCard({
 }) {
   const isCurrent = variant === "current";
   const isFailed = stage.status === "failed";
+  const isStopped = stage.status === "stopped";
 
   return (
     <div
       className={cn(
         "flex-1 rounded-lg px-3 py-2.5 transition-all duration-300",
-        isCurrent && !isFailed && "bg-muted/30",
+        isCurrent && !isFailed && !isStopped && "bg-muted/30",
         isCurrent && isFailed && "bg-destructive/[0.06]",
+        isCurrent && isStopped && "bg-muted/20",
         !isCurrent && "bg-transparent",
         variant === "previous" && "opacity-55",
         variant === "next" && "opacity-40",
@@ -126,8 +134,9 @@ function StageCard({
         <span
           className={cn(
             "text-base font-semibold tabular-nums leading-none",
-            isCurrent && !isFailed && "text-primary",
+            isCurrent && !isFailed && !isStopped && "text-primary",
             isCurrent && isFailed && "text-destructive",
+            isCurrent && isStopped && "text-muted-foreground/80",
             !isCurrent && "text-muted-foreground/30",
           )}
         >
@@ -147,6 +156,7 @@ function StageCard({
           "mt-1 pl-6 text-xs",
           isCurrent && stage.status === "running" && "text-primary/60",
           isCurrent && stage.status === "completed" && "text-chart-2/70",
+          isCurrent && stage.status === "stopped" && "text-muted-foreground/70",
           isCurrent && stage.status === "failed" && "text-destructive/60",
           isCurrent && stage.status === "pending" && "text-muted-foreground/40",
           !isCurrent && "text-muted-foreground/30",
@@ -216,7 +226,7 @@ export function WorkflowTimeline({
               bottom: "calc(100% - 0.25rem)",
             }}
           >
-            <div className="rounded-md border border-primary/15 bg-card px-3 py-1.5 shadow-lg shadow-black/25">
+            <div className="rounded-md border border-primary/15 bg-card px-3 py-1.5">
               <p className="whitespace-nowrap text-xs font-medium text-foreground/80">
                 {focusStage.label}
               </p>
@@ -259,6 +269,7 @@ export function WorkflowTimeline({
             const left = total <= 1 ? 50 : (i / (total - 1)) * 100;
             const isActive = i === focusIdx;
             const isCompleted = stage.status === "completed";
+            const isStopped = stage.status === "stopped";
             const isFailed = stage.status === "failed";
             const stageRunning = stage.status === "running";
             const isPast = i < focusIdx;
@@ -274,14 +285,17 @@ export function WorkflowTimeline({
                     "rounded-full transition-all duration-500",
                     isActive && stageRunning && "h-3.5 w-3.5 bg-primary",
                     isActive && isCompleted && "h-3 w-3 bg-chart-2",
+                    isActive && isStopped && "h-3 w-3 bg-muted-foreground/80",
                     isActive && isFailed && "h-3.5 w-3.5 bg-destructive",
                     isActive &&
                       stage.status === "pending" &&
                       "h-3 w-3 border-2 border-primary/40 bg-background",
                     !isActive && isCompleted && "h-2 w-2 bg-primary/70",
+                    !isActive && isStopped && "h-2 w-2 bg-muted-foreground/60",
                     !isActive && isFailed && "h-2 w-2 bg-destructive/60",
                     !isActive &&
                       !isCompleted &&
+                      !isStopped &&
                       !isFailed &&
                       isPast &&
                       "h-2 w-2 bg-primary/40",
@@ -344,7 +358,7 @@ export function WorkflowTimeline({
           />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <HourglassIcon
+              <Timer
                 size={16}
                 weight="fill"
                 className="shrink-0 text-[#a8cc7c]"

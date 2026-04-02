@@ -4,24 +4,63 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/shared/app-header";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { LaunchChatHeaderActions } from "@/features/launch-chat/components/launch-chat-header-actions";
 import { LaunchPackagePreviewCard } from "@/features/launch-chat/components/launch-package-preview-card";
 import { LaunchRunTabs } from "@/features/launch-chat/components/launch-run-tabs";
 import { StartupBriefCard } from "@/features/launch-chat/components/startup-brief-card";
-import { useLaunchStream } from "@/features/launch-chat/hooks/use-launch-stream";
+import {
+  type StreamPhase,
+  useLaunchStream,
+} from "@/features/launch-chat/hooks/use-launch-stream";
 import { useViewMode } from "@/features/launch-chat/hooks/use-view-mode";
+import { getRunProgressPct } from "@/features/launch-chat/utils/run-progress";
+import { getErrorMessage } from "@/lib/get-error-message";
 import type { LaunchPackage, ResearchBucket } from "@/types/launch";
+
+const STAGE_PREVIEW_ARTIFACTS: Record<string, string> = {
+  research_planning: "research_plan",
+  source_retrieval: "evidence_bundle",
+  evidence_curation: "evidence_bundle",
+  synthesis_agent: "synthesis_notes",
+  hook_agent: "hook_candidates",
+  package_draft: "launch_package_draft",
+  qa_check: "qa_report",
+  rewrite_attempt: "rewrite_draft",
+  finalized: "launch_package_final",
+};
 
 export function LaunchChatScreen({ runId }: { runId: string }) {
   const router = useRouter();
   const typedRunId = runId as Id<"runs">;
   const runData = useQuery(api.runs.getById, { runId: typedRunId });
   const approveRun = useMutation(api.runs.approve);
+  const stopRun = useMutation(api.runs.markStopped);
   const rerunFromRun = useMutation(api.runs.rerunFromRun);
   const hasStartedRef = useRef(false);
-  const { buckets, hydrate, phase, startStream, synthesis } = useLaunchStream();
+  const [isRestartDialogOpen, setIsRestartDialogOpen] = useState(false);
+  const [isRestarting, setIsRestarting] = useState(false);
+  const {
+    buckets,
+    finalPackage: streamedPackage,
+    hydrate,
+    phase,
+    startStream,
+    stopStream,
+    synthesis,
+  } = useLaunchStream();
   const { mode, effectiveMode, setMode } = useViewMode();
 
   const persistedResearch = useMemo(() => {
@@ -80,19 +119,42 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     return result;
   }, [runData]);
 
-  const displayedPhase =
+  const displayedPhase: StreamPhase =
     phase !== "idle"
       ? phase
-      : runData?.run.status === "failed"
-        ? "error"
-        : displayedSynthesis
-          ? "done"
-          : "idle";
+      : runData?.run.status === "stopped"
+        ? "stopped"
+        : runData?.run.status === "failed"
+          ? "error"
+          : displayedSynthesis
+            ? "done"
+            : "idle";
+
+  const displayedPackage = streamedPackage ?? persistedPackage;
+
+  const previewArtifactType = useMemo(() => {
+    if (displayedPackage || displayedSynthesis) {
+      return "launch_package_final";
+    }
+
+    const currentStage = runData?.run.currentStage;
+    if (!currentStage) {
+      return "launch_package_final";
+    }
+
+    return STAGE_PREVIEW_ARTIFACTS[currentStage] ?? "launch_package_final";
+  }, [displayedPackage, displayedSynthesis, runData?.run.currentStage]);
+
+  const progressPct = useMemo(
+    () => getRunProgressPct(runData?.stageRuns ?? []),
+    [runData?.stageRuns],
+  );
 
   useEffect(() => {
     if (!runData || hasStartedRef.current) return;
     if (persistedResearch.length > 0 || persistedSynthesis) {
       hydrate({
+        finalPackage: persistedPackage,
         research: persistedResearch,
         synthesisMarkdown: persistedSynthesis,
       });
@@ -108,6 +170,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     }
   }, [
     hydrate,
+    persistedPackage,
     persistedResearch,
     persistedSynthesis,
     runData,
@@ -129,11 +192,45 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   }
 
   async function handleRerun() {
-    const { runId: nextRunId } = await rerunFromRun({ runId: typedRunId });
-    router.push(`/chat/${nextRunId}`);
+    if (isRestarting) return;
+
+    setIsRestarting(true);
+
+    try {
+      const { runId: nextRunId } = await rerunFromRun({ runId: typedRunId });
+      setIsRestartDialogOpen(false);
+      router.push(`/chat/${nextRunId}`);
+    } catch (error) {
+      toast.error(
+        getErrorMessage(error, "Unable to restart this run right now."),
+      );
+    } finally {
+      setIsRestarting(false);
+    }
+  }
+
+  async function handleStop() {
+    stopStream();
+
+    try {
+      await stopRun({
+        runId: typedRunId,
+        message: "Run stopped by user.",
+      });
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to stop this run right now."));
+    }
   }
 
   const isSplit = effectiveMode === "split";
+
+  const previewProps = {
+    artifactType: previewArtifactType,
+    phase: displayedPhase,
+    progressPct,
+    synthesis: displayedSynthesis,
+    structuredPackage: displayedPackage,
+  };
 
   const leftContent = (
     <>
@@ -149,20 +246,12 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   );
 
   const rightContent = (
-    <LaunchPackagePreviewCard
-      phase={displayedPhase}
-      synthesis={displayedSynthesis}
-      structuredPackage={persistedPackage}
-    />
+    <LaunchPackagePreviewCard {...previewProps} centerPlaceholder={isSplit} />
   );
 
   const unifiedContent = (
     <div className="space-y-6">
-      <LaunchPackagePreviewCard
-        phase={displayedPhase}
-        synthesis={displayedSynthesis}
-        structuredPackage={persistedPackage}
-      />
+      <LaunchPackagePreviewCard {...previewProps} />
       <LaunchRunTabs
         stageRuns={runData.stageRuns}
         buckets={displayedBuckets}
@@ -175,19 +264,46 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <AlertDialog
+        open={isRestartDialogOpen}
+        onOpenChange={(open) => {
+          if (!isRestarting) {
+            setIsRestartDialogOpen(open);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restart this run?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will start a new run from the same startup brief and take you
+              to the new run once it begins.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRestarting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleRerun} disabled={isRestarting}>
+              {isRestarting ? "Restarting..." : "Restart run"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AppHeader
         actions={
           <LaunchChatHeaderActions
             runStatus={runData.run.status}
             viewMode={mode}
             onViewModeChange={setMode}
-            onRerun={handleRerun}
+            onRerun={() => setIsRestartDialogOpen(true)}
+            onStop={handleStop}
             onApprove={handleApprove}
           />
         }
       />
 
-      <div className="border-t border-border/30">
+      <div>
         {isSplit ? (
           <div
             className="grid grid-cols-2"

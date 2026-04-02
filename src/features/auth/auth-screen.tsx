@@ -40,7 +40,12 @@ export function AuthScreen() {
         router.refresh();
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "Unable to authenticate."));
+      toast.error(
+        getErrorMessage(
+          err,
+          "Unable to authenticate. Check your details and try again.",
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }

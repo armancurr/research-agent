@@ -29,7 +29,12 @@ export function StartupBriefScreen() {
       reset();
       router.push(`/chat/${runId}`);
     } catch (error) {
-      toast.error(getErrorMessage(error, "Unable to create launch run."));
+      toast.error(
+        getErrorMessage(
+          error,
+          "Unable to create your research run right now. Please try again.",
+        ),
+      );
       setIsSubmitting(false);
     }
   }

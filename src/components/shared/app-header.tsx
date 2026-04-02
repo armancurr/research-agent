@@ -69,7 +69,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border/50 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80",
+        "sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-3 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80",
         className,
       )}
     >
@@ -120,53 +120,54 @@ export function AppHeader({
             >
               <GearSix size={18} weight="fill" />
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0">
-              <div className="p-2">
-                <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-muted-foreground">
-                  <Palette size={12} weight="fill" aria-hidden />
-                  Theme
-                </div>
-                <div className="mt-1 space-y-1">
-                  {appThemes.map((option) => {
-                    const isActive = option.value === theme;
+            <PopoverContent className="w-52 p-1">
+              <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Theme
+              </div>
+              <div className="space-y-1">
+                {appThemes.map((option) => {
+                  const isActive = option.value === theme;
 
-                    return (
-                      <Button
-                        key={option.value}
-                        type="button"
-                        variant="ghost"
-                        className={cn(
-                          "h-auto w-full items-start justify-between rounded-lg px-3 py-2 text-left",
-                          isActive && "bg-muted text-foreground",
-                        )}
-                        onClick={() => setThemeWithShutter(option.value)}
-                      >
-                        <span className="text-sm font-medium text-foreground">
-                          {option.label}
-                        </span>
-                        <span className="flex size-5 items-center justify-center text-primary">
-                          {isActive ? <Check size={16} weight="bold" /> : null}
-                        </span>
-                      </Button>
-                    );
-                  })}
-                </div>
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "w-full justify-between",
+                        isActive && "bg-muted text-foreground",
+                      )}
+                      onClick={() => setThemeWithShutter(option.value)}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Palette
+                          size={14}
+                          weight={isActive ? "fill" : "regular"}
+                        />
+                        {option.label}
+                      </span>
+                      <span className="text-primary">
+                        {isActive ? <Check size={14} weight="bold" /> : null}
+                      </span>
+                    </Button>
+                  );
+                })}
               </div>
 
-              <Separator className="bg-border/70" />
+              <Separator className="my-1 bg-border/70" />
 
-              <div className="p-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2 rounded-lg px-3"
-                  disabled={isSigningOut}
-                  onClick={handleSignOut}
-                  aria-label={isSigningOut ? "Signing out" : "Sign out"}
-                >
-                  <SignOut size={18} />
-                  {isSigningOut ? "Signing out" : "Sign out"}
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-1.5"
+                disabled={isSigningOut}
+                onClick={handleSignOut}
+                aria-label={isSigningOut ? "Signing out" : "Sign out"}
+              >
+                <SignOut size={14} />
+                {isSigningOut ? "Signing out" : "Sign out"}
+              </Button>
             </PopoverContent>
           </Popover>
         ) : null}

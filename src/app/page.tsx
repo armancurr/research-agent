@@ -102,7 +102,6 @@ export default async function Home({
         showPrimaryNav={isAuthed}
         showSignOut={isAuthed}
         showSignIn={!isAuthed}
-        className="sticky top-0 border-border/70"
       />
       <section
         id="intro"
@@ -190,7 +189,6 @@ export default async function Home({
                         className="block h-2.5 w-2.5 rounded-full sm:h-3.5 sm:w-3.5"
                         style={{
                           backgroundColor: dotColor,
-                          boxShadow: `0 0 14px ${dotColor}22`,
                         }}
                       />
                     );

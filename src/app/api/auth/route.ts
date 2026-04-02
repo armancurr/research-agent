@@ -1,5 +1,6 @@
 import { fetchAction } from "convex/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/get-error-message";
 
 const cookieConfig = {
   maxAge: 60 * 60 * 24 * 30,
@@ -149,8 +150,10 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       const response = jsonResponse(
         {
-          error:
-            error instanceof Error ? error.message : "Authentication failed",
+          error: getErrorMessage(
+            error,
+            "Unable to authenticate. Check your details and try again.",
+          ),
         },
         400,
       );

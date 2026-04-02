@@ -377,12 +377,14 @@ function validateQaReport(value: unknown): QaReport {
 async function generateTextWithFallback(args: {
   prompt: string;
   temperature: number;
+  throwIfStopped?: () => void | Promise<void>;
 }) {
   const providers = getProviders();
   const failures: string[] = [];
 
   for (const provider of providers) {
     try {
+      await args.throwIfStopped?.();
       const result = await generateText({
         model: provider.model,
         temperature: args.temperature,
@@ -407,10 +409,12 @@ export async function generateDraftPackage(
     synthesisNotes?: SynthesisNotes;
     winningHook?: HookCandidate;
   },
+  throwIfStopped?: () => void | Promise<void>,
 ) {
   const text = await generateTextWithFallback({
     prompt: buildDraftPackagePrompt(brief, research, stageContext),
     temperature: 0.4,
+    throwIfStopped,
   });
 
   return validateLaunchPackage(parseJsonObject<unknown>(text));
@@ -421,10 +425,12 @@ export async function refinePackageWithWeaponsCheck(
   research: ResearchBucket[],
   draft: LaunchPackage,
   qaReport: QaReport,
+  throwIfStopped?: () => void | Promise<void>,
 ) {
   const text = await generateTextWithFallback({
     prompt: buildRefinePackagePrompt(brief, research, draft, qaReport),
     temperature: 0.35,
+    throwIfStopped,
   });
 
   return validateLaunchPackage(parseJsonObject<unknown>(text));
@@ -433,10 +439,12 @@ export async function refinePackageWithWeaponsCheck(
 export async function generateSynthesisNotes(
   brief: StartupBrief,
   research: ResearchBucket[],
+  throwIfStopped?: () => void | Promise<void>,
 ) {
   const text = await generateTextWithFallback({
     prompt: buildSynthesisNotesPrompt(brief, research),
     temperature: 0.3,
+    throwIfStopped,
   });
 
   return validateSynthesisNotes(parseJsonObject<unknown>(text));
@@ -446,10 +454,12 @@ export async function generateHookCandidates(
   brief: StartupBrief,
   research: ResearchBucket[],
   synthesisNotes: SynthesisNotes,
+  throwIfStopped?: () => void | Promise<void>,
 ) {
   const text = await generateTextWithFallback({
     prompt: buildHookCandidatesPrompt(brief, research, synthesisNotes),
     temperature: 0.55,
+    throwIfStopped,
   });
 
   const parsed = parseJsonObject<unknown>(text);
@@ -473,6 +483,7 @@ export async function selectHookCandidates(
   research: ResearchBucket[],
   synthesisNotes: SynthesisNotes,
   hookCandidates: HookCandidate[],
+  throwIfStopped?: () => void | Promise<void>,
 ) {
   const text = await generateTextWithFallback({
     prompt: buildHookSelectionPrompt({
@@ -482,6 +493,7 @@ export async function selectHookCandidates(
       hookCandidates,
     }),
     temperature: 0.25,
+    throwIfStopped,
   });
 
   return validateHookSelectionResult(parseJsonObject<unknown>(text));
@@ -491,10 +503,12 @@ export async function qaCheckPackage(
   brief: StartupBrief,
   research: ResearchBucket[],
   draft: LaunchPackage,
+  throwIfStopped?: () => void | Promise<void>,
 ) {
   const text = await generateTextWithFallback({
     prompt: buildQaCheckPrompt(brief, research, draft),
     temperature: 0.2,
+    throwIfStopped,
   });
 
   return validateQaReport(parseJsonObject<unknown>(text));

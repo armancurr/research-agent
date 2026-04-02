@@ -1,8 +1,9 @@
-import type { ResearchBucket } from "@/types/launch";
+import type { LaunchPackage, ResearchBucket } from "@/types/launch";
 
 export type LaunchStreamEvent =
   | { type: "research"; data: ResearchBucket }
   | { type: "research_complete" }
+  | { type: "final_package"; data: LaunchPackage }
   | { type: "token"; data: { text: string } }
   | { type: "done" }
   | { type: "error"; data: { message: string } }
@@ -46,6 +47,12 @@ export function parseSseChunks(input: string) {
         break;
       case "research_complete":
         events.push({ type: "research_complete" });
+        break;
+      case "final_package":
+        events.push({
+          type: "final_package",
+          data: JSON.parse(data) as LaunchPackage,
+        });
         break;
       case "token":
         events.push({
