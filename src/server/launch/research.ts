@@ -96,18 +96,79 @@ export function getExaClient() {
   return new Exa(process.env.EXA_API_KEY);
 }
 
-function normalizeResult(result: {
-  title?: string | null;
-  url?: string;
-  publishedDate?: string;
-  text?: string;
-}) {
+function normalizeResult(
+  result: {
+    title?: string | null;
+    url?: string;
+    publishedDate?: string;
+    text?: string;
+  },
+  source: PlannedResearchSource["source"],
+) {
+  const rawUrl = result.url ?? "";
+  const url = source === "reddit" ? normalizeRedditPostUrl(rawUrl) : rawUrl;
+
   return {
     title: result.title ?? "Untitled result",
-    url: result.url ?? "",
+    url,
     publishedDate: result.publishedDate,
     text: result.text?.slice(0, 900),
   } satisfies SourceResult;
+}
+
+function normalizeRedditPostUrl(input: string) {
+  const trimmed = input.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  const parsed = (() => {
+    try {
+      return new URL(trimmed);
+    } catch {
+      return null;
+    }
+  })();
+
+  if (!parsed) {
+    return "";
+  }
+
+  const host = parsed.hostname.toLowerCase();
+
+  if (!host.endsWith("reddit.com")) {
+    return "";
+  }
+
+  const segments = parsed.pathname
+    .replace(/\.json$/i, "")
+    .split("/")
+    .filter(Boolean);
+  const commentsIndex = segments.findIndex((segment) =>
+    /^comments?$/i.test(segment),
+  );
+
+  if (commentsIndex === -1 || commentsIndex + 1 >= segments.length) {
+    return "";
+  }
+
+  const postId = segments[commentsIndex + 1]?.replace(/\.json$/i, "").trim();
+
+  if (!postId) {
+    return "";
+  }
+
+  const subreddit =
+    commentsIndex >= 2 && /^r$/i.test(segments[commentsIndex - 2])
+      ? segments[commentsIndex - 1]
+      : "";
+  const slug = segments[commentsIndex + 2]?.replace(/\.json$/i, "").trim();
+  const normalizedPath = subreddit
+    ? `/r/${subreddit}/comments/${postId}${slug ? `/${slug}` : ""}`
+    : `/comments/${postId}${slug ? `/${slug}` : ""}`;
+
+  return `https://www.reddit.com${normalizedPath}`;
 }
 
 export async function researchSource(
@@ -349,7 +410,7 @@ export async function runPlannedSourceResearch(
         publishedDate?: string;
         text?: string;
       }>
-    ).map(normalizeResult);
+    ).map((result) => normalizeResult(result, plannedSource.source));
     const fallbackResult = normalizedResults[0];
 
     queryRuns.push({
@@ -360,7 +421,10 @@ export async function runPlannedSourceResearch(
           focus: insight.focus || plannedQuery.focus,
           sourceTitle:
             insight.sourceTitle || fallbackResult?.title || "Untitled source",
-          url: insight.url || fallbackResult?.url || "",
+          url:
+            plannedSource.source === "reddit"
+              ? normalizeRedditPostUrl(insight.url || fallbackResult?.url || "")
+              : insight.url || fallbackResult?.url || "",
           quoteOrExcerpt:
             insight.quoteOrExcerpt ||
             fallbackResult?.text?.slice(0, 280) ||
@@ -371,7 +435,12 @@ export async function runPlannedSourceResearch(
             focus: insight.focus || plannedQuery.focus,
             sourceTitle:
               insight.sourceTitle || fallbackResult?.title || "Untitled source",
-            url: insight.url || fallbackResult?.url || "",
+            url:
+              plannedSource.source === "reddit"
+                ? normalizeRedditPostUrl(
+                    insight.url || fallbackResult?.url || "",
+                  )
+                : insight.url || fallbackResult?.url || "",
             quoteOrExcerpt:
               insight.quoteOrExcerpt ||
               fallbackResult?.text?.slice(0, 280) ||
