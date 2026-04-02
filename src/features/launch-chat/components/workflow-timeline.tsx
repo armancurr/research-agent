@@ -216,7 +216,7 @@ export function WorkflowTimeline({
               bottom: "calc(100% - 0.25rem)",
             }}
           >
-            <div className="rounded-md border border-primary/15 bg-card px-3 py-1.5 shadow-lg shadow-black/25">
+            <div className="rounded-md border border-primary/15 bg-card px-3 py-1.5">
               <p className="whitespace-nowrap text-xs font-medium text-foreground/80">
                 {focusStage.label}
               </p>

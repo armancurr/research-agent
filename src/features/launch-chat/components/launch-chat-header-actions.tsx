@@ -26,7 +26,7 @@ function ViewModeToggle({
         className={cn(
           "flex items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-all duration-150",
           mode === "unified"
-            ? "bg-background text-foreground/90 shadow-sm shadow-black/20"
+            ? "bg-background text-foreground/90"
             : "text-muted-foreground/60 hover:text-muted-foreground/80",
         )}
       >
@@ -40,7 +40,7 @@ function ViewModeToggle({
         className={cn(
           "flex items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-all duration-150",
           mode === "split"
-            ? "bg-background text-foreground/90 shadow-sm shadow-black/20"
+            ? "bg-background text-foreground/90"
             : "text-muted-foreground/60 hover:text-muted-foreground/80",
         )}
       >

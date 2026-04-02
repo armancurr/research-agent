@@ -34,7 +34,7 @@ export function StartupBriefCard({ brief }: { brief: StartupBrief }) {
 
   return (
     <section className="mb-6">
-      <Card className="gap-0 overflow-hidden p-0 shadow-md shadow-black/20 ring-1 ring-foreground/8">
+      <Card className="gap-0 overflow-hidden p-0 ring-1 ring-foreground/8">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-border/30 px-6 py-5">
           <div className="min-w-0">
