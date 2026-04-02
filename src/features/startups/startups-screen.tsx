@@ -1,9 +1,18 @@
 "use client";
 
 import { api } from "@convex/_generated/api";
-import { ArrowUpRight, FolderSimple, Plus } from "@phosphor-icons/react";
-import { useQuery } from "convex/react";
+import {
+  ArrowUpRight,
+  Check,
+  FolderSimple,
+  Plus,
+  Trash,
+  X,
+} from "@phosphor-icons/react";
+import { useMutation, useQuery } from "convex/react";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/shared/app-header";
 import { AppShell } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
@@ -50,18 +59,113 @@ const STARTUP_CARD_SKELETON_KEYS = [
 
 export function StartupsScreen() {
   const startups = useQuery(api.startups.listMine);
+  const deleteStartups = useMutation(api.startups.deleteMany);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedStartupIds, setSelectedStartupIds] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  function enterSelectionMode() {
+    setIsSelectionMode(true);
+  }
+
+  function exitSelectionMode() {
+    setIsSelectionMode(false);
+    setSelectedStartupIds([]);
+  }
+
+  function toggleStartupSelection(startupId: string) {
+    setSelectedStartupIds((current) =>
+      current.includes(startupId)
+        ? current.filter((id) => id !== startupId)
+        : [...current, startupId],
+    );
+  }
+
+  async function handleDeleteSelected() {
+    if (selectedStartupIds.length === 0 || isDeleting) {
+      return;
+    }
+
+    const count = selectedStartupIds.length;
+    const confirmed = window.confirm(
+      `Delete ${count} ${count === 1 ? "startup" : "startups"}? This will also remove all associated runs, artifacts, comments, and chat history.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      await deleteStartups({ startupIds: selectedStartupIds as never });
+      toast.success(
+        `${count} ${count === 1 ? "startup" : "startups"} deleted.`,
+      );
+      exitSelectionMode();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to delete startups.";
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <>
       <AppHeader />
       <AppShell className="pb-20 pt-8">
-        <header className="mb-10">
-          <h1 className="text-lg font-medium tracking-tight text-foreground">
-            Your Startups
-          </h1>
-          <p className="mt-1 text-[13px] text-muted-foreground">
-            Briefs and research runs, all in one place.
-          </p>
+        <header className="mb-10 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-lg font-medium tracking-tight text-foreground">
+              Your Startups
+            </h1>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              {isSelectionMode
+                ? "Select startups to delete in bulk."
+                : "Briefs and research runs, all in one place."}
+            </p>
+          </div>
+
+          {startups && startups.length > 0 ? (
+            <div className="flex shrink-0 items-center gap-2">
+              {isSelectionMode ? (
+                <>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedStartupIds.length} selected
+                  </span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDeleteSelected}
+                    disabled={selectedStartupIds.length === 0 || isDeleting}
+                  >
+                    <Trash size={14} weight="bold" />
+                    {isDeleting ? "Deleting..." : "Delete selected"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exitSelectionMode}
+                    disabled={isDeleting}
+                  >
+                    <X size={14} weight="bold" />
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={enterSelectionMode}
+                >
+                  <Trash size={14} weight="bold" />
+                  Delete
+                </Button>
+              )}
+            </div>
+          ) : null}
         </header>
 
         {startups === undefined ? (
@@ -110,8 +214,12 @@ export function StartupsScreen() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {startups.map((startup) => {
-              const cardClasses =
-                "relative flex flex-col justify-between rounded-lg border border-border/50 bg-card p-5";
+              const isSelected = selectedStartupIds.includes(startup._id);
+              const cardClasses = `relative flex flex-col justify-between rounded-lg border bg-card p-5 transition-colors ${
+                isSelected
+                  ? "border-destructive/60 bg-destructive/5"
+                  : "border-border/50"
+              } ${isSelectionMode ? "cursor-pointer" : ""}`;
 
               const inner = (
                 <>
@@ -132,13 +240,23 @@ export function StartupsScreen() {
                           )}
                       </div>
 
-                      {startup.latestRun && (
+                      {isSelectionMode ? (
+                        <span
+                          className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border ${
+                            isSelected
+                              ? "border-destructive/70 bg-destructive/10 text-destructive"
+                              : "border-border/60 text-transparent"
+                          }`}
+                        >
+                          <Check size={12} weight="bold" />
+                        </span>
+                      ) : startup.latestRun ? (
                         <ArrowUpRight
                           size={14}
                           weight="bold"
                           className="mt-0.5 shrink-0 text-muted-foreground/40"
                         />
-                      )}
+                      ) : null}
                     </div>
                   </div>
 
@@ -165,7 +283,17 @@ export function StartupsScreen() {
                 </>
               );
 
-              return startup.latestRun ? (
+              return isSelectionMode ? (
+                <button
+                  key={startup._id}
+                  type="button"
+                  className={cardClasses}
+                  onClick={() => toggleStartupSelection(startup._id)}
+                  disabled={isDeleting}
+                >
+                  {inner}
+                </button>
+              ) : startup.latestRun ? (
                 <Link
                   key={startup._id}
                   href={`/chat/${startup.latestRun._id}`}
