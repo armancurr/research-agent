@@ -18,7 +18,6 @@ import { useTheme } from "@/components/providers/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
-  PopoverClose,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
@@ -130,19 +129,15 @@ export function AppHeader({
                   const isActive = option.value === theme;
 
                   return (
-                    <PopoverClose
+                    <Button
                       key={option.value}
-                      render={
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className={cn(
-                            "w-full justify-between",
-                            isActive && "bg-muted text-foreground",
-                          )}
-                        />
-                      }
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "w-full justify-between",
+                        isActive && "bg-muted text-foreground",
+                      )}
                       onClick={() => setThemeWithShutter(option.value)}
                     >
                       <span className="flex items-center gap-1.5">
@@ -155,7 +150,7 @@ export function AppHeader({
                       <span className="text-primary">
                         {isActive ? <Check size={14} weight="bold" /> : null}
                       </span>
-                    </PopoverClose>
+                    </Button>
                   );
                 })}
               </div>
