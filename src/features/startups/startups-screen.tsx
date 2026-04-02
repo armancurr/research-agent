@@ -15,6 +15,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/shared/app-header";
 import { AppShell } from "@/components/shared/app-shell";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -63,6 +73,7 @@ export function StartupsScreen() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedStartupIds, setSelectedStartupIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   function enterSelectionMode() {
     setIsSelectionMode(true);
@@ -71,6 +82,7 @@ export function StartupsScreen() {
   function exitSelectionMode() {
     setIsSelectionMode(false);
     setSelectedStartupIds([]);
+    setIsDeleteDialogOpen(false);
   }
 
   function toggleStartupSelection(startupId: string) {
@@ -87,14 +99,6 @@ export function StartupsScreen() {
     }
 
     const count = selectedStartupIds.length;
-    const confirmed = window.confirm(
-      `Delete ${count} ${count === 1 ? "startup" : "startups"}? This will also remove all associated runs, artifacts, comments, and chat history.`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     setIsDeleting(true);
 
     try {
@@ -115,6 +119,37 @@ export function StartupsScreen() {
   return (
     <>
       <AppHeader />
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeleting) {
+            setIsDeleteDialogOpen(open);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {selectedStartupIds.length}{" "}
+              {selectedStartupIds.length === 1 ? "startup" : "startups"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the selected startups and all
+              associated runs, artifacts, comments, and chat history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteSelected}
+              disabled={selectedStartupIds.length === 0 || isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete selected"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AppShell className="pb-20 pt-8">
         <header className="mb-10 flex items-start justify-between gap-4">
           <div>
@@ -138,7 +173,7 @@ export function StartupsScreen() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={handleDeleteSelected}
+                    onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={selectedStartupIds.length === 0 || isDeleting}
                   >
                     <Trash size={14} weight="bold" />

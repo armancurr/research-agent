@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   type Artifact,
   ArtifactRow,
@@ -147,8 +148,8 @@ export function PipelineView({
 
   return (
     <div className="select-none">
-      <div className="overflow-x-auto overscroll-x-contain pb-1">
-        <div className="flex min-w-full snap-x snap-mandatory gap-3">
+      <ScrollArea className="w-full">
+        <div className="flex min-w-max snap-x snap-mandatory gap-3 pb-4">
           {stages.map((stage, i) => {
             const stageArtifactTypes = STAGE_ARTIFACT_TYPES[stage.key] ?? [];
             const stageArtifacts = stageArtifactTypes.flatMap(
@@ -199,7 +200,7 @@ export function PipelineView({
             ));
           })}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

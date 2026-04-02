@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { JsonArtifactView } from "@/features/launch-chat/components/json-artifact-view";
 import { LaunchMarkdownBody } from "@/features/launch-chat/components/launch-markdown";
 import { getArtifactDisplayName } from "@/features/launch-chat/utils/artifact-display-names";
@@ -328,7 +329,7 @@ export function ArtifactRow({
   const hasDesc = Boolean(description?.trim());
   const artifactBody = (
     <div className="relative">
-      <div className="max-h-[420px] overflow-y-auto">
+      <ScrollArea className="h-[420px] max-h-[70vh]">
         <div className="max-w-full space-y-4 px-4 pb-4 pt-1">
           {showMarkdown ? (
             <div className="overflow-hidden border-l border-border/40 pl-4">
@@ -355,7 +356,7 @@ export function ArtifactRow({
             <p className="text-sm text-muted-foreground/50">No content.</p>
           ) : null}
         </div>
-      </div>
+      </ScrollArea>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-background/60 to-transparent" />
     </div>
   );
