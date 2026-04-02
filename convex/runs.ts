@@ -185,6 +185,41 @@ async function failLatestStage(
   }
 }
 
+async function stopLatestStage(
+  ctx: MutationCtx,
+  args: {
+    runId: Id<"runs">;
+    ownerId: Id<"users">;
+    stageKey: string;
+    summary: string;
+  },
+) {
+  const stageRuns = await ctx.db
+    .query("stageRuns")
+    .withIndex("by_run_and_stageKey_and_attemptNumber", (q) =>
+      q.eq("runId", args.runId).eq("stageKey", args.stageKey),
+    )
+    .order("desc")
+    .take(1);
+  const latestStage = stageRuns[0];
+
+  if (latestStage && latestStage.status === "running") {
+    await ctx.db.patch(latestStage._id, {
+      status: "stopped",
+      completedAt: Date.now(),
+      summary: args.summary,
+    });
+    await appendRunEvent(ctx, {
+      runId: args.runId,
+      ownerId: args.ownerId,
+      kind: "stage_stopped",
+      stageKey: args.stageKey,
+      attemptNumber: latestStage.attemptNumber,
+      message: args.summary,
+    });
+  }
+}
+
 export const createFromBrief = mutation({
   args: {
     brief: startupBriefValidator,
@@ -268,6 +303,20 @@ export const getById = query({
   },
 });
 
+export const getExecutionState = query({
+  args: {
+    runId: v.id("runs"),
+  },
+  handler: async (ctx, args) => {
+    const { run } = await requireOwnedRun(ctx, args.runId);
+
+    return {
+      currentStage: run.currentStage,
+      status: run.status,
+    };
+  },
+});
+
 export const markGenerating = mutation({
   args: {
     runId: v.id("runs"),
@@ -275,7 +324,11 @@ export const markGenerating = mutation({
   handler: async (ctx, args) => {
     const { run, userId } = await requireOwnedRun(ctx, args.runId);
 
-    if (run.status === "completed" || run.status === "approved") {
+    if (
+      run.status === "completed" ||
+      run.status === "approved" ||
+      run.status === "stopped"
+    ) {
       return run._id;
     }
 
@@ -314,6 +367,7 @@ export const updateStage = mutation({
     if (
       run.status === "completed" ||
       run.status === "approved" ||
+      run.status === "stopped" ||
       run.status === "failed"
     ) {
       return run._id;
@@ -525,6 +579,53 @@ export const markFailed = mutation({
       kind: "run_failed",
       stageKey: run.currentStage,
       message: args.message,
+    });
+
+    return run._id;
+  },
+});
+
+export const markStopped = mutation({
+  args: {
+    runId: v.id("runs"),
+    message: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { run, userId } = await requireOwnedRun(ctx, args.runId);
+    const message = args.message ?? "Run stopped by user.";
+
+    if (
+      run.status === "completed" ||
+      run.status === "approved" ||
+      run.status === "failed"
+    ) {
+      return run._id;
+    }
+
+    if (run.status === "stopped") {
+      return run._id;
+    }
+
+    if (run.currentStage) {
+      await stopLatestStage(ctx, {
+        runId: run._id,
+        ownerId: userId,
+        stageKey: run.currentStage,
+        summary: message,
+      });
+    }
+
+    await ctx.db.patch(run._id, {
+      status: "stopped",
+      latestError: undefined,
+      updatedAt: Date.now(),
+    });
+    await appendRunEvent(ctx, {
+      runId: run._id,
+      ownerId: userId,
+      kind: "run_stopped",
+      stageKey: run.currentStage,
+      message,
     });
 
     return run._id;

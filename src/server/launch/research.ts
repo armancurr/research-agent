@@ -380,6 +380,7 @@ export async function runPlannedSourceResearch(
   exa: Exa,
   plannedSource: PlannedResearchSource,
   includeDomains?: string[],
+  throwIfStopped?: () => void | Promise<void>,
 ) {
   const queryRuns = [] as Array<{
     focus: string;
@@ -389,6 +390,7 @@ export async function runPlannedSourceResearch(
   }>;
 
   for (const plannedQuery of plannedSource.queries) {
+    await throwIfStopped?.();
     const response = await exa.search(plannedQuery.query, {
       type: "deep",
       numResults: 6,
@@ -398,6 +400,7 @@ export async function runPlannedSourceResearch(
       },
       outputSchema: researchSchema,
     });
+    await throwIfStopped?.();
 
     const structured = response.output?.content as
       | { insights?: SourceInsight[] }

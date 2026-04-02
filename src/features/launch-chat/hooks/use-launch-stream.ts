@@ -5,39 +5,49 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { parseSseChunks } from "@/features/launch-chat/utils/sse";
 import { getErrorMessage } from "@/lib/get-error-message";
-import type { ResearchBucket } from "@/types/launch";
+import type { LaunchPackage, ResearchBucket } from "@/types/launch";
 
 export type StreamPhase =
   | "idle"
   | "researching"
   | "synthesizing"
+  | "stopped"
   | "done"
   | "error";
 
 export function useLaunchStream() {
   const abortRef = useRef<AbortController | null>(null);
+  const stopRequestedRef = useRef(false);
   const [phase, setPhase] = useState<StreamPhase>("idle");
   const [buckets, setBuckets] = useState<Map<string, ResearchBucket>>(
     new Map(),
   );
+  const [finalPackage, setFinalPackage] = useState<LaunchPackage | null>(null);
   const [synthesis, setSynthesis] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const hydrate = useCallback(
-    (args: { research: ResearchBucket[]; synthesisMarkdown: string }) => {
+    (args: {
+      finalPackage?: LaunchPackage | null;
+      research: ResearchBucket[];
+      synthesisMarkdown: string;
+    }) => {
       setBuckets(
         new Map(args.research.map((bucket) => [bucket.source, bucket])),
       );
+      setFinalPackage(args.finalPackage ?? null);
       setSynthesis(args.synthesisMarkdown);
       setError(null);
-      setPhase(args.synthesisMarkdown ? "done" : "idle");
+      setPhase(args.finalPackage || args.synthesisMarkdown ? "done" : "idle");
     },
     [],
   );
 
   const startStream = useCallback(async (args: { runId: Id<"runs"> }) => {
+    stopRequestedRef.current = false;
     setPhase("researching");
     setBuckets(new Map());
+    setFinalPackage(null);
     setSynthesis("");
     setError(null);
 
@@ -78,7 +88,13 @@ export function useLaunchStream() {
               );
               break;
             case "research_complete":
-              setPhase("synthesizing");
+              setPhase((current) =>
+                current === "done" ? current : "synthesizing",
+              );
+              break;
+            case "final_package":
+              setFinalPackage(event.data);
+              setPhase("done");
               break;
             case "token":
               setSynthesis((prev) => prev + event.data.text);
@@ -102,6 +118,9 @@ export function useLaunchStream() {
       setPhase((current) => (current === "synthesizing" ? "done" : current));
     } catch (err) {
       if (controller.signal.aborted) {
+        if (stopRequestedRef.current) {
+          setPhase("stopped");
+        }
         return;
       }
 
@@ -115,6 +134,13 @@ export function useLaunchStream() {
     }
   }, []);
 
+  const stopStream = useCallback(() => {
+    stopRequestedRef.current = true;
+    setError(null);
+    setPhase("stopped");
+    abortRef.current?.abort();
+  }, []);
+
   useEffect(() => {
     return () => {
       abortRef.current?.abort();
@@ -124,10 +150,12 @@ export function useLaunchStream() {
   return {
     buckets,
     error,
+    finalPackage,
     hydrate,
     isLive: phase === "researching" || phase === "synthesizing",
     phase,
     startStream,
+    stopStream,
     synthesis,
   };
 }

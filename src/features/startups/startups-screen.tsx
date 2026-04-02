@@ -6,7 +6,7 @@ import {
   Check,
   FolderSimple,
   Plus,
-  Trash,
+  TrashSimple,
   X,
 } from "@phosphor-icons/react";
 import { useMutation, useQuery } from "convex/react";
@@ -54,6 +54,7 @@ function formatRelativeTime(timestamp: number): string {
 const STATUS_DOT: Record<string, string> = {
   completed: "bg-chart-2",
   running: "bg-primary",
+  stopped: "bg-muted-foreground/70",
   failed: "bg-destructive",
   pending: "bg-muted-foreground/60",
 };
@@ -145,7 +146,9 @@ export function StartupsScreen() {
               onClick={handleDeleteSelected}
               disabled={selectedStartupIds.length === 0 || isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete selected"}
+              {isDeleting
+                ? "Deleting..."
+                : `Delete (${selectedStartupIds.length})`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -167,17 +170,26 @@ export function StartupsScreen() {
             <div className="flex shrink-0 items-center gap-2">
               {isSelectionMode ? (
                 <>
-                  <span className="text-xs text-muted-foreground">
-                    {selectedStartupIds.length} selected
-                  </span>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    nativeButton={false}
+                    className="gap-1.5"
+                    render={<Link href="/new" />}
+                  >
+                    <Plus size={16} weight="bold" aria-hidden />
+                    New startup
+                  </Button>
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={selectedStartupIds.length === 0 || isDeleting}
                   >
-                    <Trash size={14} weight="bold" />
-                    {isDeleting ? "Deleting..." : "Delete selected"}
+                    <TrashSimple size={14} weight="bold" />
+                    {isDeleting
+                      ? "Deleting..."
+                      : `Delete (${selectedStartupIds.length})`}
                   </Button>
                   <Button
                     variant="outline"
@@ -190,14 +202,26 @@ export function StartupsScreen() {
                   </Button>
                 </>
               ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={enterSelectionMode}
-                >
-                  <Trash size={14} weight="bold" />
-                  Delete
-                </Button>
+                <>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    nativeButton={false}
+                    className="gap-1.5"
+                    render={<Link href="/new" />}
+                  >
+                    <Plus size={16} weight="bold" aria-hidden />
+                    New startup
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={enterSelectionMode}
+                  >
+                    <TrashSimple size={14} weight="bold" />
+                    Delete
+                  </Button>
+                </>
               )}
             </div>
           ) : null}
