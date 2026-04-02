@@ -55,15 +55,15 @@ export const sourceConfigs = [
     buildQueries: (brief: StartupBrief) => [
       {
         focus: "launch discourse",
-        query: `${brief.productName} ${brief.targetAudience} founder launch thread, polarizing opinions, viral hooks, quote tweet debates, launch positioning`,
+        query: `${brief.productName} ${brief.targetAudience} public X posts from founders, launch reactions, quote tweets, replies, direct post links`,
       },
       {
         focus: "fundraising and market framing",
-        query: `${brief.productName} ${brief.category} market narrative, why now, founder hot take, x thread`,
+        query: `${brief.productName} ${brief.category} public X posts about market narrative, why now, investor reactions, direct post links`,
       },
       {
         focus: "high-engagement reactions",
-        query: `${brief.category} x replies, quote tweets, objections, hot takes, strongest reactions to launches`,
+        query: `${brief.category} public X posts with replies, quote tweets, objections, launch reactions, direct post links`,
       },
     ],
   },
@@ -106,7 +106,12 @@ function normalizeResult(
   source: PlannedResearchSource["source"],
 ) {
   const rawUrl = result.url ?? "";
-  const url = source === "reddit" ? normalizeRedditPostUrl(rawUrl) : rawUrl;
+  const url =
+    source === "reddit"
+      ? normalizeRedditPostUrl(rawUrl)
+      : source === "x"
+        ? normalizeXPostUrl(rawUrl)
+        : rawUrl;
 
   return {
     title: result.title ?? "Untitled result",
@@ -114,6 +119,106 @@ function normalizeResult(
     publishedDate: result.publishedDate,
     text: result.text?.slice(0, 900),
   } satisfies SourceResult;
+}
+
+function normalizeXPostUrl(input: string) {
+  const trimmed = input.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  const parsed = (() => {
+    try {
+      return new URL(trimmed);
+    } catch {
+      return null;
+    }
+  })();
+
+  if (!parsed) {
+    return "";
+  }
+
+  const host = parsed.hostname.toLowerCase();
+  if (
+    !(
+      host === "x.com" ||
+      host.endsWith(".x.com") ||
+      host === "twitter.com" ||
+      host.endsWith(".twitter.com")
+    )
+  ) {
+    return "";
+  }
+
+  const segments = parsed.pathname.split("/").filter(Boolean);
+  if (segments.length < 3 || segments[1] !== "status") {
+    return "";
+  }
+
+  const username = segments[0]?.trim();
+  const postId = segments[2]?.trim();
+
+  if (!username || !postId || !/^\d+$/.test(postId)) {
+    return "";
+  }
+
+  return `https://x.com/${username}/status/${postId}`;
+}
+
+function getDeepSearchSystemPrompt(source: PlannedResearchSource["source"]) {
+  if (source !== "x") {
+    return undefined;
+  }
+
+  return [
+    "Return only direct X post evidence.",
+    "Prefer canonical x.com/<user>/status/<id> or twitter.com/<user>/status/<id> URLs.",
+    "Exclude blogs, newsletters, link roundups, analytics tools, and articles that only discuss posts.",
+    "If no direct X post URL supports a candidate insight, omit that insight.",
+  ].join(" ");
+}
+
+type DeepSearchGrounding = {
+  citations?: Array<{
+    title?: string;
+    url?: string;
+  }>;
+  field?: string;
+};
+
+function getGroundedInsightCitation(args: {
+  grounding?: DeepSearchGrounding[];
+  index: number;
+  source: PlannedResearchSource["source"];
+}) {
+  const relevantEntries =
+    args.grounding?.filter((entry) =>
+      entry.field?.startsWith(`insights[${args.index}]`),
+    ) ?? [];
+
+  for (const entry of relevantEntries) {
+    for (const citation of entry.citations ?? []) {
+      const url =
+        args.source === "x"
+          ? normalizeXPostUrl(citation.url ?? "")
+          : args.source === "reddit"
+            ? normalizeRedditPostUrl(citation.url ?? "")
+            : (citation.url ?? "");
+
+      if (!url) {
+        continue;
+      }
+
+      return {
+        title: citation.title,
+        url,
+      };
+    }
+  }
+
+  return null;
 }
 
 function normalizeRedditPostUrl(input: string) {
@@ -395,6 +500,7 @@ export async function runPlannedSourceResearch(
       type: "deep",
       numResults: 6,
       includeDomains,
+      systemPrompt: getDeepSearchSystemPrompt(plannedSource.source),
       contents: {
         text: { maxCharacters: 5000 },
       },
@@ -405,6 +511,9 @@ export async function runPlannedSourceResearch(
     const structured = response.output?.content as
       | { insights?: SourceInsight[] }
       | undefined;
+    const grounding = response.output?.grounding as
+      | DeepSearchGrounding[]
+      | undefined;
 
     const normalizedResults = (
       (response.results ?? []) as Array<{
@@ -413,45 +522,62 @@ export async function runPlannedSourceResearch(
         publishedDate?: string;
         text?: string;
       }>
-    ).map((result) => normalizeResult(result, plannedSource.source));
+    )
+      .map((result) => normalizeResult(result, plannedSource.source))
+      .filter((result) => Boolean(result.url));
     const fallbackResult = normalizedResults[0];
 
     queryRuns.push({
       focus: plannedQuery.focus,
       insights:
-        structured?.insights?.slice(0, 5).map((insight) => ({
-          ...insight,
-          focus: insight.focus || plannedQuery.focus,
-          sourceTitle:
-            insight.sourceTitle || fallbackResult?.title || "Untitled source",
-          url:
-            plannedSource.source === "reddit"
-              ? normalizeRedditPostUrl(insight.url || fallbackResult?.url || "")
-              : insight.url || fallbackResult?.url || "",
-          quoteOrExcerpt:
-            insight.quoteOrExcerpt ||
-            fallbackResult?.text?.slice(0, 280) ||
-            insight.evidence,
-          publishedDate: insight.publishedDate || fallbackResult?.publishedDate,
-          signalStrength: getInsightStrength({
-            ...insight,
-            focus: insight.focus || plannedQuery.focus,
-            sourceTitle:
-              insight.sourceTitle || fallbackResult?.title || "Untitled source",
-            url:
+        structured?.insights
+          ?.slice(0, 5)
+          .reduce<SourceInsight[]>((acc, insight, index) => {
+            const groundedCitation = getGroundedInsightCitation({
+              grounding,
+              index,
+              source: plannedSource.source,
+            });
+            const normalizedInsightUrl =
               plannedSource.source === "reddit"
-                ? normalizeRedditPostUrl(
-                    insight.url || fallbackResult?.url || "",
-                  )
-                : insight.url || fallbackResult?.url || "",
-            quoteOrExcerpt:
-              insight.quoteOrExcerpt ||
-              fallbackResult?.text?.slice(0, 280) ||
-              insight.evidence,
-            publishedDate:
-              insight.publishedDate || fallbackResult?.publishedDate,
-          }),
-        })) ?? [],
+                ? normalizeRedditPostUrl(insight.url || "")
+                : plannedSource.source === "x"
+                  ? normalizeXPostUrl(insight.url || "")
+                  : insight.url || "";
+            const resolvedUrl =
+              groundedCitation?.url ||
+              normalizedInsightUrl ||
+              fallbackResult?.url ||
+              "";
+            const resolvedTitle =
+              groundedCitation?.title ||
+              insight.sourceTitle ||
+              fallbackResult?.title ||
+              "Untitled source";
+            const resolvedInsight = {
+              ...insight,
+              focus: insight.focus || plannedQuery.focus,
+              sourceTitle: resolvedTitle,
+              url: resolvedUrl,
+              quoteOrExcerpt:
+                insight.quoteOrExcerpt ||
+                fallbackResult?.text?.slice(0, 280) ||
+                insight.evidence,
+              publishedDate:
+                insight.publishedDate || fallbackResult?.publishedDate,
+            } satisfies SourceInsight;
+
+            if (plannedSource.source === "x" && !resolvedInsight.url) {
+              return acc;
+            }
+
+            acc.push({
+              ...resolvedInsight,
+              signalStrength: getInsightStrength(resolvedInsight),
+            });
+
+            return acc;
+          }, []) ?? [],
       query: plannedQuery.query,
       results: normalizedResults,
     });
