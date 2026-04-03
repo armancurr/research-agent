@@ -6,6 +6,9 @@ import Link from "next/link";
 import { LandingChatHeroPreview } from "@/components/landing/landing-chat-hero-preview";
 import { AppHeader } from "@/components/shared/app-header";
 import { Button } from "@/components/ui/button";
+import { Globe } from "@/components/ui/globe";
+import { RetroGrid } from "@/components/ui/retro-grid";
+import { Ripple } from "@/components/ui/ripple";
 
 const SECTION_MAX_WIDTH = "max-w-[1450px]";
 
@@ -27,6 +30,27 @@ const PROCESS_STEPS = [
     title: "Refine & Ship",
     description:
       "Review the output, refine the package, and turn the final recommendations into messaging you can actually publish.",
+  },
+] as const;
+
+const FEATURE_CARDS = [
+  {
+    id: "research",
+    title: "Signal Mapping",
+    description:
+      "Surface the strongest customer pain points, market shifts, and competitor claims before you write a single launch sentence.",
+  },
+  {
+    id: "positioning",
+    title: "Global Source Coverage",
+    description:
+      "Pull in signals from press, forums, communities, and category players across markets so your narrative is grounded in real demand.",
+  },
+  {
+    id: "launch",
+    title: "Launch Outputs",
+    description:
+      "Turn the research package into positioning pillars, launch angles, and channel-ready messaging your team can ship immediately.",
   },
 ] as const;
 
@@ -87,6 +111,51 @@ function getProcessDotColor(columnIndex: number, rowIndex: number) {
   }
 
   return `hsl(${hue} ${saturation}% ${lightness}%)`;
+}
+
+function FeatureCardVisual({
+  id,
+}: {
+  id: (typeof FEATURE_CARDS)[number]["id"];
+}) {
+  if (id === "research") {
+    return (
+      <div className="relative h-full w-full overflow-hidden rounded-t-xl bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--primary)_14%,transparent),transparent_64%)]">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative h-[220px] w-[220px] sm:h-[250px] sm:w-[250px]">
+            <Ripple
+              className="opacity-75"
+              mainCircleSize={90}
+              mainCircleOpacity={0.28}
+              numCircles={7}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === "positioning") {
+    return (
+      <div className="bg-background relative flex h-full w-full items-center justify-center overflow-hidden rounded-t-xl border-b border-border/30 px-12 pt-8 pb-32 md:pb-40">
+        <Globe className="top-24 md:top-28" />
+        <div className="pointer-events-none absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_200%,color-mix(in_srgb,var(--primary)_14%,rgba(0,0,0,0.2)),rgba(255,255,255,0))]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-full w-full overflow-hidden rounded-t-xl bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--accent)_10%,transparent),transparent_72%)]">
+      <RetroGrid
+        angle={68}
+        cellSize={54}
+        opacity={0.55}
+        lightLineColor="color-mix(in srgb, var(--primary) 50%, var(--accent) 50%)"
+        darkLineColor="color-mix(in srgb, var(--primary) 44%, var(--accent) 56%)"
+      />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--background)_85%,transparent)_100%)]" />
+    </div>
+  );
 }
 
 type LandingPageContentProps = {
@@ -168,6 +237,57 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="features"
+        className="relative overflow-hidden px-6 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-32"
+      >
+        <div className={`mx-auto w-full ${SECTION_MAX_WIDTH}`}>
+          <motion.div
+            className="mb-16 text-center"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.55 }}
+            transition={getTransition(0.08, 0.75)}
+          >
+            <h2 className="mx-auto max-w-[720px] text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-foreground sm:text-[2.75rem] lg:text-[3.4rem]">
+              Everything you need to launch with confidence.
+            </h2>
+            <p className="mx-auto mt-6 max-w-[600px] text-base leading-7 font-medium tracking-[-0.03em] text-muted-foreground">
+              Research Agent combines deep market research with intelligent
+              positioning to help you ship faster.
+            </p>
+          </motion.div>
+
+          <div className="mx-auto grid w-full max-w-[1200px] gap-6 md:grid-cols-3 lg:gap-8">
+            {FEATURE_CARDS.map((card, index) => (
+              <motion.div
+                key={card.id}
+                className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-1"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
+                whileInView={
+                  shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+                }
+                viewport={{ once: true, amount: 0.5 }}
+                transition={getTransition(index * 0.12 + 0.1, 0.7)}
+              >
+                <div className="relative h-[260px] w-full overflow-hidden rounded-t-xl md:h-[300px]">
+                  <FeatureCardVisual id={card.id} />
+                </div>
+
+                <div className="p-6">
+                  <h3 className="mb-2 text-lg font-semibold tracking-[-0.02em] text-foreground">
+                    {card.title}
+                  </h3>
+                  <p className="text-sm leading-6 font-medium tracking-[-0.02em] text-muted-foreground">
+                    {card.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

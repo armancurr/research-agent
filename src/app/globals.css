@@ -632,6 +632,24 @@ textarea {
   animation: motion-stage-pulse 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
+/* Ripple animation for feature cards */
+@keyframes ripple {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.3;
+  }
+}
+
+.animate-ripple {
+  animation: ripple calc(var(--duration, 2s)) ease calc(var(--i, 0) * 0.2s)
+    infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(.route-fade),
   ::view-transition-old(.route-fade),
@@ -643,6 +661,10 @@ textarea {
   }
 
   .timeline-stage-running {
+    animation: none;
+  }
+
+  .animate-ripple {
     animation: none;
   }
 }
