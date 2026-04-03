@@ -126,26 +126,6 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
         id="intro"
         className="relative overflow-hidden bg-background px-6 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10"
       >
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          initial={shouldReduceMotion ? false : { opacity: 0.35 }}
-          animate={
-            shouldReduceMotion ? undefined : { opacity: [0.35, 0.55, 0.35] }
-          }
-          transition={
-            shouldReduceMotion
-              ? undefined
-              : {
-                  duration: 8,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "easeInOut",
-                }
-          }
-        >
-          <div className="absolute right-[-7rem] bottom-[-7rem] h-[16rem] w-[16rem] rounded-full bg-chart-2/20 blur-3xl" />
-        </motion.div>
-
         <div
           className={`mx-auto flex min-h-[calc(100vh-3.5rem)] w-full ${SECTION_MAX_WIDTH} flex-col`}
         >

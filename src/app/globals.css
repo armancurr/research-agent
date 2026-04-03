@@ -543,12 +543,25 @@ textarea {
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+::view-transition-group(.route-chat-open) {
+  animation-duration: 740ms;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
 ::view-transition-old(.route-fade) {
   animation: route-fade-out 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 ::view-transition-new(.route-fade) {
   animation: route-fade-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+::view-transition-old(.route-chat-open) {
+  animation: route-chat-old 500ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(.route-chat-open) {
+  animation: route-chat-new 780ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
 }
 
 @keyframes route-fade-out {
@@ -571,10 +584,65 @@ textarea {
   }
 }
 
+@keyframes route-chat-old {
+  from {
+    filter: blur(0px);
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    filter: blur(10px);
+    opacity: 0;
+    transform: scale(0.986);
+  }
+}
+
+@keyframes route-chat-new {
+  from {
+    clip-path: inset(0 0 36% 0 round 16px);
+    filter: blur(14px);
+    opacity: 0;
+    transform: translateY(42px) scale(0.97);
+  }
+
+  68% {
+    clip-path: inset(0 0 0 0 round 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0 round 0);
+    filter: blur(0px);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes motion-stage-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 34%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+.timeline-stage-running {
+  animation: motion-stage-pulse 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(.route-fade),
   ::view-transition-old(.route-fade),
-  ::view-transition-new(.route-fade) {
+  ::view-transition-new(.route-fade),
+  ::view-transition-group(.route-chat-open),
+  ::view-transition-old(.route-chat-open),
+  ::view-transition-new(.route-chat-open) {
+    animation: none;
+  }
+
+  .timeline-stage-running {
     animation: none;
   }
 }

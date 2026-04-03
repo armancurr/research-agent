@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 
 type AppHeaderProps = {
   actions?: ReactNode;
+  showThemeSelector?: boolean;
   showPrimaryNav?: boolean;
   showSignOut?: boolean;
   showSignIn?: boolean;
@@ -35,6 +36,7 @@ type AppHeaderProps = {
 
 export function AppHeader({
   actions,
+  showThemeSelector = false,
   showPrimaryNav = true,
   showSignOut = true,
   showSignIn = false,
@@ -121,41 +123,47 @@ export function AppHeader({
               <GearSix size={18} weight="fill" />
             </PopoverTrigger>
             <PopoverContent className="w-52 p-1">
-              <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Theme
-              </div>
-              <div className="space-y-1">
-                {appThemes.map((option) => {
-                  const isActive = option.value === theme;
+              {showThemeSelector ? (
+                <>
+                  <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                    Theme
+                  </div>
+                  <div className="space-y-1">
+                    {appThemes.map((option) => {
+                      const isActive = option.value === theme;
 
-                  return (
-                    <Button
-                      key={option.value}
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "w-full justify-between",
-                        isActive && "bg-muted text-foreground",
-                      )}
-                      onClick={() => setThemeWithShutter(option.value)}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <Palette
-                          size={14}
-                          weight={isActive ? "fill" : "regular"}
-                        />
-                        {option.label}
-                      </span>
-                      <span className="text-primary">
-                        {isActive ? <Check size={14} weight="bold" /> : null}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
+                      return (
+                        <Button
+                          key={option.value}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className={cn(
+                            "w-full justify-between",
+                            isActive && "bg-muted text-foreground",
+                          )}
+                          onClick={() => setThemeWithShutter(option.value)}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <Palette
+                              size={14}
+                              weight={isActive ? "fill" : "regular"}
+                            />
+                            {option.label}
+                          </span>
+                          <span className="text-primary">
+                            {isActive ? (
+                              <Check size={14} weight="bold" />
+                            ) : null}
+                          </span>
+                        </Button>
+                      );
+                    })}
+                  </div>
 
-              <Separator className="my-1 bg-border/70" />
+                  <Separator className="my-1 bg-border/70" />
+                </>
+              ) : null}
 
               <Button
                 variant="ghost"

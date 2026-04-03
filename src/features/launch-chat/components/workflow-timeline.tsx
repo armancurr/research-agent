@@ -1,6 +1,7 @@
 "use client";
 
 import { CaretRight, Timer } from "@phosphor-icons/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Collapsible,
@@ -8,6 +9,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { formatDuration } from "@/features/launch-chat/utils/run-display";
+import { MOTION_SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 type StageRun = {
@@ -175,6 +177,8 @@ export function WorkflowTimeline({
   stageRuns: StageRun[];
   embedded?: boolean;
 }) {
+  const shouldReduceMotion = useReducedMotion();
+  const reduceMotion = shouldReduceMotion ?? false;
   const { stages, focusIdx, completedCount } = usePipeline(stageRuns);
   const total = stages.length;
   const allStagesComplete = total > 0 && completedCount === total;
@@ -259,10 +263,24 @@ export function WorkflowTimeline({
           {/* Base line */}
           <div className="absolute inset-x-0 h-[1.5px] rounded-full bg-border/30" />
           {/* Filled line */}
-          <div
+          <motion.div
             className="absolute h-[1.5px] rounded-full bg-primary/50 transition-[width] duration-700 ease-out"
             style={{ width: `${progressPct}%` }}
+            transition={reduceMotion ? undefined : MOTION_SPRING}
           />
+
+          {!reduceMotion ? (
+            <motion.div
+              className="absolute top-1/2 h-[9px] w-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/80 blur-[0.5px]"
+              style={{ left: `${progressPct}%` }}
+              animate={{ opacity: [0.35, 0.95, 0.35], scale: [0.8, 1.25, 0.8] }}
+              transition={{
+                duration: 1.1,
+                ease: "easeInOut",
+                repeat: Infinity,
+              }}
+            />
+          ) : null}
 
           {/* Dots */}
           {stages.map((stage, i) => {
@@ -280,9 +298,10 @@ export function WorkflowTimeline({
                 className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
                 style={{ left: `${left}%` }}
               >
-                <div
+                <motion.div
                   className={cn(
                     "rounded-full transition-all duration-500",
+                    stageRunning && "timeline-stage-running",
                     isActive && stageRunning && "h-3.5 w-3.5 bg-primary",
                     isActive && isCompleted && "h-3 w-3 bg-chart-2",
                     isActive && isStopped && "h-3 w-3 bg-muted-foreground/80",
@@ -304,6 +323,20 @@ export function WorkflowTimeline({
                       !isPast &&
                       "h-[7px] w-[7px] border border-border/50 bg-background",
                   )}
+                  animate={
+                    reduceMotion
+                      ? undefined
+                      : isActive && stageRunning
+                        ? { scale: [1, 1.16, 1] }
+                        : undefined
+                  }
+                  transition={
+                    reduceMotion
+                      ? undefined
+                      : isActive && stageRunning
+                        ? { duration: 1, ease: "easeInOut", repeat: Infinity }
+                        : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }
+                  }
                 />
               </div>
             );

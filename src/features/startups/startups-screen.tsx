@@ -12,7 +12,7 @@ import {
 import { useMutation, useQuery } from "convex/react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/shared/app-header";
 import { AppShell } from "@/components/shared/app-shell";
@@ -35,6 +35,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import {
+  MOTION_SPRING,
+  pageReveal,
+  riseInItem,
+  staggerContainer,
+} from "@/lib/motion";
 
 function formatRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -71,12 +77,18 @@ const STARTUP_CARD_SKELETON_KEYS = [
 
 export function StartupsScreen() {
   const shouldReduceMotion = useReducedMotion();
+  const reduceMotion = shouldReduceMotion ?? false;
   const startups = useQuery(api.startups.listMine);
   const deleteStartups = useMutation(api.startups.deleteMany);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedStartupIds, setSelectedStartupIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const reveal = pageReveal(reduceMotion);
+  const listContainerVariants = useMemo(
+    () => staggerContainer(reduceMotion, 0.06),
+    [reduceMotion],
+  );
 
   function enterSelectionMode() {
     setIsSelectionMode(true);
@@ -122,14 +134,11 @@ export function StartupsScreen() {
   return (
     <motion.div
       className="min-h-screen bg-background text-foreground"
-      initial={shouldReduceMotion ? false : { opacity: 0 }}
-      animate={shouldReduceMotion ? undefined : { opacity: 1 }}
-      transition={{
-        duration: shouldReduceMotion ? 0 : 0.28,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+      initial={reveal.initial}
+      animate={reveal.animate}
+      transition={reveal.transition}
     >
-      <AppHeader />
+      <AppHeader showThemeSelector />
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
@@ -164,7 +173,12 @@ export function StartupsScreen() {
         </AlertDialogContent>
       </AlertDialog>
       <AppShell className="pb-20 pt-8">
-        <header className="mb-10 flex items-start justify-between gap-4">
+        <motion.header
+          className="mb-10 flex items-start justify-between gap-4"
+          variants={riseInItem(reduceMotion, 10)}
+          initial="hidden"
+          animate="visible"
+        >
           <div>
             <h1 className="text-lg font-medium tracking-tight text-foreground">
               Your Startups
@@ -235,7 +249,7 @@ export function StartupsScreen() {
               )}
             </div>
           ) : null}
-        </header>
+        </motion.header>
 
         {startups === undefined ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -247,47 +261,99 @@ export function StartupsScreen() {
             ))}
           </div>
         ) : startups.length === 0 ? (
-          <Empty className="py-28">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <FolderSimple size={16} weight="fill" />
-              </EmptyMedia>
-              <EmptyTitle>No startups yet</EmptyTitle>
-              <EmptyDescription className="text-xs">
-                Start your first brief to generate launch research.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent className="mt-2 flex-row flex-wrap items-center justify-center gap-2">
-              <Button
-                variant="default"
-                size="sm"
-                nativeButton={false}
-                className="gap-1.5"
-                render={<Link href="/new" />}
-              >
-                <Plus size={16} weight="bold" aria-hidden />
-                New startup
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                nativeButton={false}
-                className="gap-1.5"
-                render={<Link href="/?preview=1" />}
-              >
-                <ArrowUpRight size={16} weight="bold" aria-hidden />
-                How it works
-              </Button>
-            </EmptyContent>
-          </Empty>
+          <motion.div
+            variants={staggerContainer(reduceMotion, 0.08)}
+            initial="hidden"
+            animate="visible"
+          >
+            <Empty className="py-28">
+              <motion.div variants={riseInItem(reduceMotion, 12)}>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <motion.span
+                      className="inline-flex"
+                      animate={
+                        reduceMotion
+                          ? undefined
+                          : {
+                              rotate: [0, -5, 5, 0],
+                              scale: [1, 1.06, 1],
+                            }
+                      }
+                      transition={
+                        reduceMotion
+                          ? undefined
+                          : {
+                              duration: 1.8,
+                              ease: "easeInOut",
+                              repeat: Number.POSITIVE_INFINITY,
+                            }
+                      }
+                    >
+                      <FolderSimple size={16} weight="fill" />
+                    </motion.span>
+                  </EmptyMedia>
+                  <EmptyTitle>No startups yet</EmptyTitle>
+                  <EmptyDescription className="text-xs">
+                    Start your first brief to generate launch research.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </motion.div>
+              <motion.div variants={riseInItem(reduceMotion, 16)}>
+                <EmptyContent className="mt-2 flex-row flex-wrap items-center justify-center gap-2">
+                  <motion.div
+                    whileHover={
+                      reduceMotion ? undefined : { y: -1.5, scale: 1.02 }
+                    }
+                    whileTap={reduceMotion ? undefined : { scale: 0.99 }}
+                    transition={reduceMotion ? undefined : MOTION_SPRING}
+                  >
+                    <Button
+                      variant="default"
+                      size="sm"
+                      nativeButton={false}
+                      className="gap-1.5"
+                      render={<Link href="/new" />}
+                    >
+                      <Plus size={16} weight="bold" aria-hidden />
+                      New startup
+                    </Button>
+                  </motion.div>
+                  <motion.div
+                    whileHover={
+                      reduceMotion ? undefined : { y: -1.5, scale: 1.02 }
+                    }
+                    whileTap={reduceMotion ? undefined : { scale: 0.99 }}
+                    transition={reduceMotion ? undefined : MOTION_SPRING}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      nativeButton={false}
+                      className="gap-1.5"
+                      render={<Link href="/?preview=1" />}
+                    >
+                      <ArrowUpRight size={16} weight="bold" aria-hidden />
+                      How it works
+                    </Button>
+                  </motion.div>
+                </EmptyContent>
+              </motion.div>
+            </Empty>
+          </motion.div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            variants={listContainerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {startups.map((startup) => {
               const isSelected = selectedStartupIds.includes(startup._id);
               const cardClasses = `relative flex flex-col justify-between rounded-lg border bg-card p-5 transition-colors ${
                 isSelected
                   ? "border-destructive/60 bg-destructive/5"
-                  : "border-border/50"
+                  : "border-border/50 hover:border-primary/35"
               } ${isSelectionMode ? "cursor-pointer" : ""}`;
 
               const inner = (
@@ -353,31 +419,69 @@ export function StartupsScreen() {
               );
 
               return isSelectionMode ? (
-                <button
+                <motion.button
                   key={startup._id}
                   type="button"
                   className={cardClasses}
                   onClick={() => toggleStartupSelection(startup._id)}
                   disabled={isDeleting}
+                  variants={riseInItem(reduceMotion, 16)}
+                  whileHover={
+                    reduceMotion
+                      ? undefined
+                      : { rotateX: -1.2, scale: 1.012, y: -2 }
+                  }
+                  whileTap={reduceMotion ? undefined : { scale: 0.992 }}
+                  transition={reduceMotion ? undefined : MOTION_SPRING}
+                  style={
+                    reduceMotion ? undefined : { transformPerspective: 900 }
+                  }
                 >
                   {inner}
-                </button>
+                </motion.button>
               ) : startup.latestRun ? (
-                <Link
+                <motion.div
                   key={startup._id}
-                  href={`/chat/${startup.latestRun._id}`}
-                  transitionTypes={["route-fade"]}
+                  variants={riseInItem(reduceMotion, 16)}
+                  whileHover={
+                    reduceMotion
+                      ? undefined
+                      : { rotateX: -1.4, scale: 1.014, y: -2.5 }
+                  }
+                  whileTap={reduceMotion ? undefined : { scale: 0.992 }}
+                  transition={reduceMotion ? undefined : MOTION_SPRING}
+                  style={
+                    reduceMotion ? undefined : { transformPerspective: 980 }
+                  }
+                >
+                  <Link
+                    href={`/chat/${startup.latestRun._id}`}
+                    transitionTypes={["route-chat-open"]}
+                    className={cardClasses}
+                  >
+                    {inner}
+                  </Link>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={startup._id}
                   className={cardClasses}
+                  variants={riseInItem(reduceMotion, 16)}
+                  whileHover={
+                    reduceMotion
+                      ? undefined
+                      : { rotateX: -1, scale: 1.01, y: -1.5 }
+                  }
+                  transition={reduceMotion ? undefined : MOTION_SPRING}
+                  style={
+                    reduceMotion ? undefined : { transformPerspective: 900 }
+                  }
                 >
                   {inner}
-                </Link>
-              ) : (
-                <div key={startup._id} className={cardClasses}>
-                  {inner}
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </AppShell>
     </motion.div>

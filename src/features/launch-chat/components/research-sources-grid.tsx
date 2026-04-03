@@ -1,6 +1,7 @@
 "use client";
 
 import { CaretRight, GlobeSimpleIcon } from "@phosphor-icons/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import {
   Collapsible,
@@ -12,6 +13,7 @@ import {
   sourceMeta,
   sourceOrder,
 } from "@/features/launch-chat/constants/source-meta";
+import { riseInItem, staggerContainer } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { ResearchBucket } from "@/types/launch";
 
@@ -32,26 +34,35 @@ export function ResearchSourcesGrid({
   embedded?: boolean;
 }) {
   const [open, setOpen] = useState(true);
+  const shouldReduceMotion = useReducedMotion();
+  const reduceMotion = shouldReduceMotion ?? false;
 
   const content = (
-    <div
+    <motion.div
       className={cn("grid gap-x-6 gap-y-3 sm:grid-cols-2", !embedded && "mt-5")}
+      variants={staggerContainer(reduceMotion, 0.04)}
+      initial="hidden"
+      animate="visible"
     >
-      {sourceOrder.map((sourceKey) => {
+      {sourceOrder.map((sourceKey, index) => {
         const meta = sourceMeta[sourceKey];
         return (
-          <ResearchSourceCard
+          <motion.div
             key={sourceKey}
-            bucket={buckets.get(sourceKey)}
-            icon={meta.icon}
-            iconClassName={meta.iconClassName}
-            label={meta.label}
-            latestMessage={latestMessages[sourceKey]}
-            status={sourceStatuses[sourceKey]}
-          />
+            variants={riseInItem(reduceMotion, 12 + index * 2)}
+          >
+            <ResearchSourceCard
+              bucket={buckets.get(sourceKey)}
+              icon={meta.icon}
+              iconClassName={meta.iconClassName}
+              label={meta.label}
+              latestMessage={latestMessages[sourceKey]}
+              status={sourceStatuses[sourceKey]}
+            />
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 
   if (embedded) {

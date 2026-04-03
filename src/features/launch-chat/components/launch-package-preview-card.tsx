@@ -1,6 +1,7 @@
 "use client";
 
 import { CaretDown, Clock } from "@phosphor-icons/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import {
   getArtifactDescription,
   getArtifactDisplayName,
 } from "@/features/launch-chat/utils/artifact-display-names";
+import { riseInItem, staggerContainer } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { LaunchPackage } from "@/types/launch";
 
@@ -39,6 +41,8 @@ export function LaunchPackagePreviewCard({
   synthesis: string;
   structuredPackage?: LaunchPackage | null;
 }) {
+  const shouldReduceMotion = useReducedMotion();
+  const reduceMotion = shouldReduceMotion ?? false;
   const [expanded, setExpanded] = useState(false);
   const hasSynthesis = synthesis.trim().length > 0;
   const previewMarkdown = hasSynthesis ? getPreviewMarkdown(synthesis) : "";
@@ -65,29 +69,72 @@ export function LaunchPackagePreviewCard({
     centerPlaceholder && !showStructuredView && !showMarkdownPreview;
 
   return (
-    <section
+    <motion.section
       className={cn(
         "mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both",
         shouldCenterPlaceholder &&
           "flex min-h-full items-center justify-center",
       )}
+      variants={staggerContainer(reduceMotion, 0.05)}
+      initial="hidden"
+      animate="visible"
     >
-      <div className="w-full border-b border-border/40 pb-6">
+      <motion.div
+        className="w-full border-b border-border/40 pb-6"
+        variants={riseInItem(reduceMotion, 14)}
+      >
         {showStructuredView ? (
-          <LaunchPackageStructuredView
-            pkg={resolvedPackage}
-            markdown={synthesis}
-          />
+          <motion.div
+            initial={
+              reduceMotion
+                ? undefined
+                : { opacity: 0, y: 12, clipPath: "inset(0 0 32% 0)" }
+            }
+            animate={
+              reduceMotion
+                ? undefined
+                : { opacity: 1, y: 0, clipPath: "inset(0 0 0 0)" }
+            }
+            transition={{
+              duration: reduceMotion ? 0 : 0.52,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            <LaunchPackageStructuredView
+              pkg={resolvedPackage}
+              markdown={synthesis}
+            />
+          </motion.div>
         ) : isLoading ? (
-          <div className="px-4 py-6">
+          <motion.div
+            className="px-4 py-6"
+            initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={{
+              duration: reduceMotion ? 0 : 0.42,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
             <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
-              <div className="flex size-9 items-center justify-center rounded-full bg-muted/40">
+              <motion.div
+                className="flex size-9 items-center justify-center rounded-full bg-muted/40"
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : { rotate: [0, -8, 9, 0], scale: [1, 1.08, 1] }
+                }
+                transition={
+                  reduceMotion
+                    ? undefined
+                    : { duration: 1.4, ease: "easeInOut", repeat: Infinity }
+                }
+              >
                 <Clock
                   size={16}
                   weight="fill"
                   className="text-muted-foreground/75"
                 />
-              </div>
+              </motion.div>
               <div className="mt-4 space-y-2 text-sm text-muted-foreground/80">
                 <p className="font-medium text-foreground/85">
                   {artifactTitle}
@@ -98,15 +145,33 @@ export function LaunchPackagePreviewCard({
                 </p>
               </div>
               <div className="mt-5 w-full max-w-md">
-                <div className="h-1.5 overflow-hidden rounded-full bg-muted/40">
-                  <div
-                    className="h-full rounded-full bg-primary/70 transition-[width] duration-500 ease-out"
-                    style={{ width: `${progressPct}%` }}
+                <div className="relative h-1.5 overflow-hidden rounded-full bg-muted/40">
+                  <motion.div
+                    className="h-full rounded-full bg-primary/70"
+                    animate={{ width: `${progressPct}%` }}
+                    initial={{ width: 0 }}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.46,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
                   />
+                  {!reduceMotion ? (
+                    <motion.div
+                      key={`progress-pulse-${Math.round(progressPct)}`}
+                      className="pointer-events-none absolute inset-0 rounded-full"
+                      initial={{ opacity: 0.38 }}
+                      animate={{ opacity: 0 }}
+                      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                      style={{
+                        background:
+                          "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 40%, transparent), transparent)",
+                      }}
+                    />
+                  ) : null}
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         ) : (
           <Card className="gap-0 overflow-hidden p-0 ring-1 ring-foreground/8">
             <div className="border-b border-border/30 px-4 py-3">
@@ -178,7 +243,7 @@ export function LaunchPackagePreviewCard({
             </div>
           </Card>
         )}
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }

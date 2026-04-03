@@ -3,7 +3,7 @@
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -29,6 +29,12 @@ import {
 import { useViewMode } from "@/features/launch-chat/hooks/use-view-mode";
 import { getRunProgressPct } from "@/features/launch-chat/utils/run-progress";
 import { getErrorMessage } from "@/lib/get-error-message";
+import {
+  MOTION_SPRING,
+  pageReveal,
+  riseInItem,
+  staggerContainer,
+} from "@/lib/motion";
 import type { LaunchPackage, ResearchBucket } from "@/types/launch";
 
 const STAGE_PREVIEW_ARTIFACTS: Record<string, string> = {
@@ -46,6 +52,7 @@ const STAGE_PREVIEW_ARTIFACTS: Record<string, string> = {
 export function LaunchChatScreen({ runId }: { runId: string }) {
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
+  const reduceMotion = shouldReduceMotion ?? false;
   const typedRunId = runId as Id<"runs">;
   const runData = useQuery(api.runs.getById, { runId: typedRunId });
   const approveRun = useMutation(api.runs.approve);
@@ -54,6 +61,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   const hasStartedRef = useRef(false);
   const [isRestartDialogOpen, setIsRestartDialogOpen] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
+  const [showOpenSequence, setShowOpenSequence] = useState(!reduceMotion);
   const {
     buckets,
     finalPackage: streamedPackage,
@@ -64,6 +72,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     synthesis,
   } = useLaunchStream();
   const { mode, effectiveMode, setMode } = useViewMode();
+  const reveal = pageReveal(reduceMotion);
 
   const persistedResearch = useMemo(() => {
     const artifact = runData?.artifacts.find(
@@ -180,16 +189,28 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     typedRunId,
   ]);
 
+  useEffect(() => {
+    if (reduceMotion) {
+      setShowOpenSequence(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowOpenSequence(false);
+    }, 820);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [reduceMotion]);
+
   if (runData === undefined) {
     return (
       <motion.div
         className="flex min-h-screen flex-col bg-background"
-        initial={shouldReduceMotion ? false : { opacity: 0 }}
-        animate={shouldReduceMotion ? undefined : { opacity: 1 }}
-        transition={{
-          duration: shouldReduceMotion ? 0 : 0.28,
-          ease: [0.22, 1, 0.36, 1],
-        }}
+        initial={reveal.initial}
+        animate={reveal.animate}
+        transition={reveal.transition}
       >
         <AppHeader />
         <div className="flex-1" />
@@ -210,7 +231,7 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
       const { runId: nextRunId } = await rerunFromRun({ runId: typedRunId });
       setIsRestartDialogOpen(false);
       router.push(`/chat/${nextRunId}`, {
-        transitionTypes: ["route-fade"],
+        transitionTypes: ["route-chat-open"],
       });
     } catch (error) {
       toast.error(
@@ -245,45 +266,109 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   };
 
   const leftContent = (
-    <>
-      <StartupBriefCard brief={runData.run.briefSnapshot} />
-      <LaunchRunTabs
-        stageRuns={runData.stageRuns}
-        buckets={displayedBuckets}
-        latestMessages={sourceMessages}
-        sourceStatuses={sourceStatuses}
-        artifacts={runData.artifacts}
-      />
-    </>
+    <motion.div
+      className="space-y-0"
+      variants={staggerContainer(reduceMotion, 0.08)}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={riseInItem(reduceMotion, 14)}>
+        <StartupBriefCard brief={runData.run.briefSnapshot} />
+      </motion.div>
+      <motion.div variants={riseInItem(reduceMotion, 20)}>
+        <LaunchRunTabs
+          stageRuns={runData.stageRuns}
+          buckets={displayedBuckets}
+          latestMessages={sourceMessages}
+          sourceStatuses={sourceStatuses}
+          artifacts={runData.artifacts}
+        />
+      </motion.div>
+    </motion.div>
   );
 
   const rightContent = (
-    <LaunchPackagePreviewCard {...previewProps} centerPlaceholder={isSplit} />
+    <motion.div
+      variants={riseInItem(reduceMotion, 22)}
+      initial="hidden"
+      animate="visible"
+      transition={MOTION_SPRING}
+    >
+      <LaunchPackagePreviewCard {...previewProps} centerPlaceholder={isSplit} />
+    </motion.div>
   );
 
   const unifiedContent = (
-    <div className="space-y-6">
-      <LaunchPackagePreviewCard {...previewProps} />
-      <LaunchRunTabs
-        stageRuns={runData.stageRuns}
-        buckets={displayedBuckets}
-        latestMessages={sourceMessages}
-        sourceStatuses={sourceStatuses}
-        artifacts={runData.artifacts}
-      />
-    </div>
+    <motion.div
+      className="space-y-6"
+      variants={staggerContainer(reduceMotion, 0.1)}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={riseInItem(reduceMotion, 18)}>
+        <LaunchPackagePreviewCard {...previewProps} />
+      </motion.div>
+      <motion.div variants={riseInItem(reduceMotion, 16)}>
+        <LaunchRunTabs
+          stageRuns={runData.stageRuns}
+          buckets={displayedBuckets}
+          latestMessages={sourceMessages}
+          sourceStatuses={sourceStatuses}
+          artifacts={runData.artifacts}
+        />
+      </motion.div>
+    </motion.div>
   );
 
   return (
     <motion.div
       className="flex min-h-screen flex-col bg-background"
-      initial={shouldReduceMotion ? false : { opacity: 0 }}
-      animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+      initial={
+        reduceMotion
+          ? false
+          : { filter: "blur(14px)", opacity: 0, scale: 0.976, y: 34 }
+      }
+      animate={
+        reduceMotion
+          ? undefined
+          : { filter: "blur(0px)", opacity: 1, scale: 1, y: 0 }
+      }
       transition={{
-        duration: shouldReduceMotion ? 0 : 0.28,
-        ease: [0.22, 1, 0.36, 1],
+        duration: reduceMotion ? 0 : 0.72,
+        ease: [0.2, 0.95, 0.25, 1],
       }}
     >
+      <AnimatePresence>
+        {showOpenSequence ? (
+          <motion.div
+            className="pointer-events-none fixed inset-0 z-40 overflow-hidden"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-background/50 backdrop-blur-[2px]"
+              initial={{ opacity: 0.82 }}
+              animate={{ opacity: 0 }}
+              transition={{ duration: 0.66, ease: [0.2, 0.95, 0.25, 1] }}
+            />
+            <motion.div
+              className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-background via-background/75 to-transparent"
+              initial={{ x: 0 }}
+              animate={{ x: "-108%" }}
+              transition={{ duration: 0.74, ease: [0.2, 0.95, 0.25, 1] }}
+            />
+            <motion.div
+              className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-background via-background/75 to-transparent"
+              initial={{ x: 0 }}
+              animate={{ x: "108%" }}
+              transition={{ duration: 0.74, ease: [0.2, 0.95, 0.25, 1] }}
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       <AlertDialog
         open={isRestartDialogOpen}
         onOpenChange={(open) => {
@@ -331,18 +416,57 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
               height: "calc(100vh - 3.5rem)",
             }}
           >
-            <div className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+            <motion.div
+              className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"
+              initial={reduceMotion ? undefined : { opacity: 0, x: -12 }}
+              animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
+              transition={{
+                duration: reduceMotion ? 0 : 0.5,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              style={reduceMotion ? undefined : { transformPerspective: 1000 }}
+            >
               {leftContent}
-            </div>
-            <div className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+            </motion.div>
+            <motion.div
+              className="overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"
+              initial={
+                reduceMotion ? undefined : { opacity: 0, rotateY: -3.8, x: 12 }
+              }
+              animate={
+                reduceMotion ? undefined : { opacity: 1, rotateY: 0, x: 0 }
+              }
+              transition={{
+                duration: reduceMotion ? 0 : 0.58,
+                ease: [0.22, 1, 0.36, 1],
+                delay: reduceMotion ? 0 : 0.07,
+              }}
+              style={
+                reduceMotion
+                  ? undefined
+                  : {
+                      transformOrigin: "left center",
+                      transformPerspective: 1100,
+                    }
+              }
+            >
               {rightContent}
-            </div>
+            </motion.div>
           </div>
         ) : (
-          <div className="mx-auto w-full max-w-5xl px-5 py-5 sm:px-6 lg:px-8">
-            <StartupBriefCard brief={runData.run.briefSnapshot} />
-            {unifiedContent}
-          </div>
+          <motion.div
+            className="mx-auto w-full max-w-5xl px-5 py-5 sm:px-6 lg:px-8"
+            variants={staggerContainer(reduceMotion, 0.08)}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={riseInItem(reduceMotion, 12)}>
+              <StartupBriefCard brief={runData.run.briefSnapshot} />
+            </motion.div>
+            <motion.div variants={riseInItem(reduceMotion, 18)}>
+              {unifiedContent}
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </motion.div>
