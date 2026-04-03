@@ -11,14 +11,14 @@ export const metadata: Metadata = {
     title: "Research Agent | Research-backed launch systems for startups",
     description:
       "Turn a startup brief into research-backed positioning, launch angles, and messaging you can use right away.",
-    images: ["/image1.png"],
+    images: ["/image6.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Research Agent | Research-backed launch systems for startups",
     description:
       "Turn a startup brief into research-backed positioning, launch angles, and messaging you can use right away.",
-    images: ["/image1.png"],
+    images: ["/image6.png"],
   },
 };
 

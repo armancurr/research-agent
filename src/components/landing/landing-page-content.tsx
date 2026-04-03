@@ -1,7 +1,13 @@
 "use client";
 
-import { ArrowRight } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  RedditLogo,
+  XLogo,
+  YoutubeLogo,
+} from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import Link from "next/link";
 import { LandingChatHeroPreview } from "@/components/landing/landing-chat-hero-preview";
 import { AppHeader } from "@/components/shared/app-header";
@@ -29,6 +35,71 @@ const PROCESS_STEPS = [
       "Review the output, refine the package, and turn the final recommendations into messaging you can actually publish.",
   },
 ] as const;
+
+const credibilityItems = [
+  {
+    name: "YouTube",
+    icon: <YoutubeLogo className="h-7 w-7" weight="fill" aria-hidden="true" />,
+  },
+  {
+    name: "X / Twitter",
+    icon: <XLogo className="h-7 w-7" weight="fill" aria-hidden="true" />,
+  },
+  {
+    name: "Reddit",
+    icon: <RedditLogo className="h-7 w-7" weight="fill" aria-hidden="true" />,
+  },
+] as const;
+
+const showcaseCardImages = [
+  { id: "panel-1", src: "/image2.png", alt: "Launch campaign preview one" },
+  { id: "panel-2", src: "/image3.png", alt: "Launch campaign preview two" },
+  { id: "panel-3", src: "/image4.png", alt: "Launch campaign preview three" },
+  { id: "panel-4", src: "/image5.png", alt: "Launch campaign preview four" },
+] as const;
+
+type FounderTestimonial = {
+  name: string;
+  role: string;
+  quote: string;
+  badgeLabel: string;
+  badgeClassName: string;
+};
+
+const founderTestimonials: FounderTestimonial[] = [
+  {
+    name: "Aahel Iyer",
+    role: "Co-Founder Midship",
+    quote:
+      "Research Agent gave us clearer launch hooks and a sharper narrative. We went from scattered notes to messaging the whole team could actually use.",
+    badgeLabel: "MI",
+    badgeClassName: "bg-[#ff6b2c] text-white",
+  },
+  {
+    name: "Mads Burcharth",
+    role: "Wawa Fertility (collaboration)",
+    quote:
+      "The research synthesis made the positioning work much faster. It surfaced the audience language and objections we needed before building the launch copy.",
+    badgeLabel: "WA",
+    badgeClassName: "bg-[#111111] text-white",
+  },
+  {
+    name: "Raj Khare",
+    role: "CEO at Offset",
+    quote:
+      "What stood out was how quickly the platform turned a startup brief into a credible launch package. The outputs felt grounded, not generic.",
+    badgeLabel: "OF",
+    badgeClassName: "bg-[#2b2d2f] text-[#f3eee8]",
+  },
+  {
+    name: "Maria Tavierne",
+    role: "Branded Native",
+    quote:
+      "It helped us connect research, strategy, and messaging in one workflow. That made launch planning a lot less noisy and much more decisive.",
+    badgeLabel: "BN",
+    badgeClassName: "bg-[#0b1f36] text-[#c8dcff]",
+  },
+];
 
 const processColumns = [
   { id: "a1", height: 3 },
@@ -89,6 +160,71 @@ function getProcessDotColor(columnIndex: number, rowIndex: number) {
   return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
+function CredibilityIcons() {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-5 text-muted-foreground sm:gap-6">
+      {credibilityItems.map(({ name, icon }) => (
+        <span key={name} className="flex items-center gap-3">
+          {icon}
+          <span className="text-base font-medium tracking-[-0.04em] sm:text-[1.05rem]">
+            {name}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function FounderQuoteCard({
+  name,
+  role,
+  quote,
+  badgeLabel,
+  badgeClassName,
+}: FounderTestimonial) {
+  return (
+    <article className="flex h-full flex-col justify-between gap-10 rounded-[6px] border border-border/70 bg-card/80 p-6 sm:p-7 lg:p-8">
+      <div className="flex items-start gap-4">
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[0.72rem] font-semibold uppercase tracking-[0.18em] ${badgeClassName}`}
+        >
+          {badgeLabel}
+        </div>
+        <div>
+          <p className="text-[1.05rem] font-medium leading-none tracking-[-0.04em] text-foreground">
+            {name}
+          </p>
+          <p className="mt-1 text-sm leading-none tracking-[-0.03em] text-muted-foreground">
+            {role}
+          </p>
+        </div>
+      </div>
+
+      <p className="max-w-[42ch] text-[1.02rem] leading-[1.22] tracking-[-0.04em] text-muted-foreground sm:text-[1.08rem] lg:max-w-[48ch]">
+        {quote}
+      </p>
+    </article>
+  );
+}
+
+function TestimonialArtworkCard() {
+  return (
+    <article className="relative min-h-[360px] overflow-hidden rounded-[6px] bg-card/80 lg:min-h-[420px]">
+      <Image
+        src="/image6.png"
+        alt="Founders and product launch artwork"
+        fill
+        sizes="(min-width: 1024px) 460px, 100vw"
+        className="object-cover"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.02),rgba(10,10,10,0.12)_45%,rgba(10,10,10,0.42)_100%)]" />
+      <p className="absolute inset-x-5 bottom-5 max-w-[320px] text-[1.1rem] font-medium leading-[1.15] tracking-[-0.05em] text-white sm:inset-x-6 sm:bottom-6 sm:text-[1.2rem]">
+        Trusted by founders building and scaling modern B2B products.
+      </p>
+    </article>
+  );
+}
+
 type LandingPageContentProps = {
   isAuthed: boolean;
 };
@@ -110,17 +246,13 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, y: -18 }}
-        animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-        transition={getTransition(0.05, 0.55)}
-      >
+      <div>
         <AppHeader
           showPrimaryNav={isAuthed}
           showSignOut={isAuthed}
           showSignIn={!isAuthed}
         />
-      </motion.div>
+      </div>
 
       <section
         id="intro"
@@ -131,34 +263,19 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
         >
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center pb-8 pt-4 text-center sm:pt-8 lg:pt-10">
             <div className="max-w-[980px]">
-              <motion.h1
-                className="mx-auto max-w-[860px] text-balance text-[2.35rem] leading-[1.05] font-medium tracking-[-0.06em] text-foreground sm:text-[3.2rem] lg:text-[4.2rem]"
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
-                animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-                transition={getTransition(0.14, 0.8)}
-              >
+              <h1 className="mx-auto max-w-[860px] text-balance text-[2.35rem] leading-[1.05] font-medium tracking-[-0.06em] text-foreground sm:text-[3.2rem] lg:text-[4.2rem]">
                 Ship your launch story before the internet writes one for you.
-              </motion.h1>
+              </h1>
 
-              <motion.div
-                className="mx-auto mt-8 max-w-[760px] space-y-4"
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-                animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-                transition={getTransition(0.3, 0.7)}
-              >
+              <div className="mx-auto mt-8 max-w-[760px] space-y-4">
                 <p className="text-base leading-7 font-medium tracking-[-0.03em] text-muted-foreground sm:text-[1.05rem] sm:leading-7">
                   Research Agent turns your startup brief into market research,
                   positioning, and launch-ready messaging so you can move from
                   blank page to confident rollout faster.
                 </p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                className="mt-10 flex flex-col justify-center gap-3 sm:flex-row"
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-                animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-                transition={getTransition(0.43, 0.65)}
-              >
+              <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
                 <Button
                   nativeButton={false}
                   className="h-10 rounded-full px-5 text-sm"
@@ -167,19 +284,10 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
                   <ArrowRight size={16} weight="bold" aria-hidden />
                   Start a research run
                 </Button>
-              </motion.div>
+              </div>
             </div>
 
-            <motion.div
-              className="mt-16 flex w-full items-center justify-center lg:mt-20"
-              initial={
-                shouldReduceMotion ? false : { opacity: 0, y: 42, scale: 0.98 }
-              }
-              animate={
-                shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }
-              }
-              transition={getTransition(0.5, 0.9)}
-            >
+            <div className="mt-16 flex w-full items-center justify-center lg:mt-20">
               <div
                 className={`relative w-full ${SECTION_MAX_WIDTH} max-w-full`}
               >
@@ -195,18 +303,136 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
+
+            <div className="mx-auto mt-12 max-w-[920px] space-y-5">
+              <p className="text-[1.02rem] leading-[1.22] tracking-[-0.04em] text-foreground sm:text-[1.12rem]">
+                Research-backed by the platforms where startup launches actually
+                move.
+              </p>
+              <div className="flex justify-center">
+                <CredibilityIcons />
+              </div>
+              <p className="text-[1rem] font-medium tracking-[-0.03em] text-muted-foreground sm:text-[1.02rem]">
+                And a workflow inspired by specialized research, writing, and
+                strategy agents.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="work"
+        className="mx-auto w-full max-w-[1880px] bg-background px-6 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24"
+      >
+        <div className={`mx-auto w-full ${SECTION_MAX_WIDTH}`}>
+          <motion.h2
+            className="mx-auto mb-16 max-w-[760px] text-center text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-foreground sm:text-[2.75rem] lg:text-[3.4rem]"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.55 }}
+            transition={getTransition(0.08, 0.75)}
+          >
+            Launch campaigns built for traction
+          </motion.h2>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
+            {showcaseCardImages.map(({ id, src, alt }, index) => (
+              <motion.article
+                key={id}
+                className="relative overflow-hidden rounded-[8px] border border-border/70 bg-card/50"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+                whileInView={
+                  shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+                }
+                viewport={{ once: true, amount: 0.35 }}
+                transition={getTransition(index * 0.08 + 0.08, 0.7)}
+              >
+                <div className="relative aspect-[16/11] overflow-hidden">
+                  <Image
+                    src={src}
+                    alt={alt}
+                    fill
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01)_35%,rgba(7,7,8,0.52)_100%)]" />
+                </div>
+              </motion.article>
+            ))}
+          </div>
+
+          <div className="mt-20 bg-background px-0 py-2 sm:px-0 lg:px-0">
+            <div className={`mx-auto w-full ${SECTION_MAX_WIDTH}`}>
+              <motion.h3
+                className="mx-auto max-w-[540px] text-center text-[2rem] font-medium leading-[1.06] tracking-[-0.06em] text-foreground sm:text-[2.5rem] lg:text-[3rem]"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+                whileInView={
+                  shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+                }
+                viewport={{ once: true, amount: 0.55 }}
+                transition={getTransition(0.08, 0.7)}
+              >
+                What founders say about research-led launch work.
+              </motion.h3>
+
+              <div className="mt-14 grid gap-4 lg:grid-cols-[1.02fr_1fr]">
+                <motion.div
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+                  whileInView={
+                    shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+                  }
+                  viewport={{ once: true, amount: 0.35 }}
+                  transition={getTransition(0.08, 0.7)}
+                >
+                  <TestimonialArtworkCard />
+                </motion.div>
+
+                <div className="grid gap-4">
+                  {founderTestimonials.slice(0, 2).map((testimonial, index) => (
+                    <motion.div
+                      key={testimonial.name}
+                      initial={
+                        shouldReduceMotion ? false : { opacity: 0, y: 24 }
+                      }
+                      whileInView={
+                        shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+                      }
+                      viewport={{ once: true, amount: 0.45 }}
+                      transition={getTransition(index * 0.08 + 0.14, 0.65)}
+                    >
+                      <FounderQuoteCard {...testimonial} />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {founderTestimonials.slice(2).map((testimonial, index) => (
+                  <motion.div
+                    key={testimonial.name}
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+                    whileInView={
+                      shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+                    }
+                    viewport={{ once: true, amount: 0.45 }}
+                    transition={getTransition(index * 0.08 + 0.22, 0.65)}
+                  >
+                    <FounderQuoteCard {...testimonial} />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section
         id="process"
-        className="flex min-h-screen w-full flex-col justify-center border-y border-border/70 bg-card/35 px-6 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-32"
+        className="flex min-h-screen w-full flex-col justify-center  make  px-6 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-32"
       >
         <div className={`mx-auto w-full ${SECTION_MAX_WIDTH}`}>
           <motion.h2
-            className="mx-auto mb-16 max-w-[720px] text-center text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-white sm:text-[2.75rem] lg:text-[3.4rem]"
+            className="mx-auto mb-16 max-w-[720px] text-center text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-foreground sm:text-[2.75rem] lg:text-[3.4rem]"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.55 }}
@@ -285,10 +511,10 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
                 viewport={{ once: true, amount: 0.6 }}
                 transition={getTransition(index * 0.12 + 0.1, 0.65)}
               >
-                <h3 className="mb-4 text-base font-semibold tracking-[-0.03em] text-white">
+                <h3 className="mb-4 text-base font-semibold tracking-[-0.03em] text-foreground">
                   {step.id} - {step.title}
                 </h3>
-                <p className="text-base leading-7 font-medium tracking-[-0.03em] text-white/50">
+                <p className="text-base leading-7 font-medium tracking-[-0.03em] text-muted-foreground">
                   {step.description}
                 </p>
               </motion.div>
@@ -298,7 +524,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
       </section>
 
       <motion.footer
-        className="border-t border-border/70 bg-background px-6 py-6 sm:px-8 lg:px-12"
+        className="px-6 py-6 sm:px-8 lg:px-12"
         initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
         whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.7 }}
