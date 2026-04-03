@@ -115,6 +115,7 @@ export function AuthScreen() {
             fill
             priority
             quality={100}
+            unoptimized
             className="object-cover object-center"
             sizes="(min-width: 1024px) 40vw, 100vw"
           />
