@@ -57,7 +57,6 @@ export const runStatusValidator = v.union(
   v.literal("stopped"),
   v.literal("completed"),
   v.literal("failed"),
-  v.literal("approved"),
 );
 
 export const artifactTypeValidator = v.union(
@@ -86,7 +85,6 @@ export const runEventKindValidator = v.union(
   v.literal("run_stopped"),
   v.literal("run_completed"),
   v.literal("run_failed"),
-  v.literal("run_approved"),
   v.literal("run_rerun_requested"),
   v.literal("stage_started"),
   v.literal("stage_completed"),

@@ -127,7 +127,7 @@ export function ReviewCommentsPanel({
                 placeholder={
                   selectedArtifact
                     ? `Feedback for ${getArtifactDisplayName(selectedArtifact.artifactType)}...`
-                    : "Describe what should change or what you approve."
+                    : "Describe what should change."
                 }
               />
             </div>

@@ -32,7 +32,6 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     completedAt: v.optional(v.number()),
-    approvedAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_startup", ["startupId"])

@@ -48,25 +48,25 @@ export const sourceConfigs = [
       },
     ],
   },
-  {
-    source: "x" as const,
-    label: "X",
-    includeDomains: ["x.com", "twitter.com"],
-    buildQueries: (brief: StartupBrief) => [
-      {
-        focus: "launch discourse",
-        query: `${brief.productName} ${brief.targetAudience} public X posts from founders, launch reactions, quote tweets, replies, direct post links`,
-      },
-      {
-        focus: "fundraising and market framing",
-        query: `${brief.productName} ${brief.category} public X posts about market narrative, why now, investor reactions, direct post links`,
-      },
-      {
-        focus: "high-engagement reactions",
-        query: `${brief.category} public X posts with replies, quote tweets, objections, launch reactions, direct post links`,
-      },
-    ],
-  },
+  // {
+  //   source: "x" as const,
+  //   label: "X",
+  //   includeDomains: ["x.com", "twitter.com"],
+  //   buildQueries: (brief: StartupBrief) => [
+  //     {
+  //       focus: "launch discourse",
+  //       query: `${brief.productName} ${brief.targetAudience} public X posts from founders, launch reactions, quote tweets, replies, direct post links`,
+  //     },
+  //     {
+  //       focus: "fundraising and market framing",
+  //       query: `${brief.productName} ${brief.category} public X posts about market narrative, why now, investor reactions, direct post links`,
+  //     },
+  //     {
+  //       focus: "high-engagement reactions",
+  //       query: `${brief.category} public X posts with replies, quote tweets, objections, launch reactions, direct post links`,
+  //     },
+  //   ],
+  // },
   {
     source: "web" as const,
     label: "Web",

@@ -29,10 +29,7 @@ export const sendMessage = action({
       };
     } = await ctx.runQuery(api.runs.getById, { runId: args.runId });
 
-    if (
-      runData.run.status !== "completed" &&
-      runData.run.status !== "approved"
-    ) {
+    if (runData.run.status !== "completed") {
       throw new ConvexError(
         "Chat is only available after the run is complete.",
       );

@@ -55,7 +55,6 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   const reduceMotion = shouldReduceMotion ?? false;
   const typedRunId = runId as Id<"runs">;
   const runData = useQuery(api.runs.getById, { runId: typedRunId });
-  const approveRun = useMutation(api.runs.approve);
   const stopRun = useMutation(api.runs.markStopped);
   const rerunFromRun = useMutation(api.runs.rerunFromRun);
   const hasStartedRef = useRef(false);
@@ -216,10 +215,6 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
         <div className="flex-1" />
       </motion.div>
     );
-  }
-
-  async function handleApprove() {
-    await approveRun({ runId: typedRunId });
   }
 
   async function handleRerun() {
@@ -403,7 +398,6 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
             onViewModeChange={setMode}
             onRerun={() => setIsRestartDialogOpen(true)}
             onStop={handleStop}
-            onApprove={handleApprove}
           />
         }
       />

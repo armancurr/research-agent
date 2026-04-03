@@ -105,14 +105,12 @@ export function LaunchChatHeaderActions({
   onViewModeChange,
   onRerun,
   onStop,
-  onApprove,
 }: {
   runStatus: string;
   viewMode: ViewMode;
   onViewModeChange: (next: ViewMode) => void;
   onRerun: () => void;
   onStop: () => void;
-  onApprove: () => void;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -132,12 +130,6 @@ export function LaunchChatHeaderActions({
         <ArrowUUpLeftIcon size={16} weight="bold" aria-hidden />
         Restart
       </Button>
-      {runStatus === "completed" ? (
-        <Button size="sm" className="gap-1.5" onClick={onApprove}>
-          <CheckIcon size={16} weight="bold" aria-hidden />
-          Approve
-        </Button>
-      ) : null}
     </div>
   );
 }

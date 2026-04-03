@@ -68,33 +68,15 @@ export function StartupBriefCard({ brief }: { brief: StartupBrief }) {
           </Button>
         </div>
 
-        {/* Compact metadata row */}
-        <div
-          className={cn(
-            "relative grid grid-cols-2 divide-x divide-border/30 sm:grid-cols-4",
-            expanded && "border-b border-border/30",
-          )}
-        >
-          <div className="px-5 py-3.5">
-            <MetaChip label="Audience" value={brief.targetAudience} />
-          </div>
-          <div className="px-5 py-3.5">
-            <MetaChip label="Category" value={brief.category} />
-          </div>
-          <div className="px-5 py-3.5">
-            <MetaChip label="Funding stage" value={brief.fundingStage} />
-          </div>
-          <div className="px-5 py-3.5">
-            <MetaChip label="Company" value={brief.companyName} />
-          </div>
-          {!expanded ? (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-card via-card/70 to-transparent" />
-          ) : null}
-        </div>
-
         {/* Expanded narrative fields */}
         {expanded ? (
           <div className="flex flex-col divide-y divide-border/30">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 px-6 py-5 sm:grid-cols-4">
+              <MetaChip label="Audience" value={brief.targetAudience} />
+              <MetaChip label="Category" value={brief.category} />
+              <MetaChip label="Funding stage" value={brief.fundingStage} />
+              <MetaChip label="Company" value={brief.companyName} />
+            </div>
             {brief.launchGoal ? (
               <div className="px-6 py-5">
                 <NarrativeBlock label="Launch goal" value={brief.launchGoal} />

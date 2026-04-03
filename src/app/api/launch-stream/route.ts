@@ -148,8 +148,6 @@ export async function POST(request: Request) {
             results: SourceResult[];
           }>;
         }> = [];
-        let synthesis = "";
-
         const researchPromises = plannedSources.map(async (plannedSource) => {
           await throwIfRunStopped();
           const config = sourceConfigs.find(
@@ -526,27 +524,14 @@ export async function POST(request: Request) {
           { token },
         );
         finalPackage = validateLaunchPackage(finalPackage);
+        const markdown = formatLaunchPackageMarkdown(finalPackage);
         await fetchMutation(
-          api.runs.recordEvent,
+          api.runs.saveStreamResult,
           {
             runId,
-            kind: "stage_completed",
-            stageKey: "finalized",
-            message:
-              "Final package passed structural validation before render.",
-          },
-          { token },
-        );
-        await throwIfRunStopped();
-        await fetchMutation(
-          api.runs.createArtifact,
-          {
-            runId,
-            artifactType: "launch_package_final",
-            content: finalPackage,
-            isFinal: true,
-            stageKey: "finalized",
-            message: "Final structured launch package saved.",
+            finalPackage,
+            research,
+            synthesisMarkdown: markdown,
           },
           { token },
         );
@@ -555,25 +540,13 @@ export async function POST(request: Request) {
         await throwIfRunStopped();
         enqueueSse(controller, encoder, "research_complete", {});
 
-        const markdown = formatLaunchPackageMarkdown(finalPackage);
         const chunks = markdown.split(/(\n\n|\n)/).filter(Boolean);
 
         for (const chunk of chunks) {
           await throwIfRunStopped();
           enqueueSse(controller, encoder, "token", { text: chunk });
-          synthesis += chunk;
         }
 
-        await throwIfRunStopped();
-        await fetchMutation(
-          api.runs.saveStreamResult,
-          {
-            runId,
-            research,
-            synthesisMarkdown: synthesis,
-          },
-          { token },
-        );
         await throwIfRunStopped();
         await fetchMutation(
           api.runs.recordEvent,

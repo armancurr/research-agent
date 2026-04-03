@@ -7,7 +7,6 @@ import {
   GearSix,
   GlobeSimple,
   Palette,
-  Plus,
   SignOut,
 } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -76,23 +75,7 @@ export function AppHeader({
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-        {showPrimaryNav ? (
-          <>
-            {brandLink}
-            <Button
-              variant="outline"
-              size="sm"
-              nativeButton={false}
-              className="gap-1.5"
-              render={<Link href="/new" />}
-            >
-              <Plus size={16} weight="bold" aria-hidden />
-              New startup
-            </Button>
-          </>
-        ) : (
-          brandLink
-        )}
+        {brandLink}
       </div>
 
       <div className="flex shrink-0 items-center gap-2">

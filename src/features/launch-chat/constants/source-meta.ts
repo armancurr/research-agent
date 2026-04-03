@@ -29,10 +29,10 @@ export const sourceMeta: Record<SourceKey, SourceMetaEntry> = {
     iconClassName: "text-[#000000] dark:text-white",
   },
   web: {
-    label: "Web",
+    label: "Web Search",
     icon: Globe,
     iconClassName: "text-sky-500",
   },
 };
 
-export const sourceOrder: SourceKey[] = ["reddit", "youtube", "x", "web"];
+export const sourceOrder: SourceKey[] = ["reddit", "youtube", "web"];

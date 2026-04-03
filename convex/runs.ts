@@ -324,11 +324,7 @@ export const markGenerating = mutation({
   handler: async (ctx, args) => {
     const { run, userId } = await requireOwnedRun(ctx, args.runId);
 
-    if (
-      run.status === "completed" ||
-      run.status === "approved" ||
-      run.status === "stopped"
-    ) {
+    if (run.status === "completed" || run.status === "stopped") {
       return run._id;
     }
 
@@ -366,7 +362,6 @@ export const updateStage = mutation({
 
     if (
       run.status === "completed" ||
-      run.status === "approved" ||
       run.status === "stopped" ||
       run.status === "failed"
     ) {
@@ -401,6 +396,7 @@ export const updateStage = mutation({
 export const saveStreamResult = mutation({
   args: {
     runId: v.id("runs"),
+    finalPackage: v.any(),
     research: v.array(researchBucketValidator),
     synthesisMarkdown: v.string(),
   },
@@ -418,7 +414,29 @@ export const saveStreamResult = mutation({
       existingArtifacts.filter(
         (artifact) => artifact.artifactType === "launch_package_markdown",
       ).length + 1;
+    const finalPackageVersion =
+      existingArtifacts.filter(
+        (artifact) => artifact.artifactType === "launch_package_final",
+      ).length + 1;
     const now = Date.now();
+
+    const finalArtifactId = await ctx.db.insert("artifacts", {
+      runId: run._id,
+      ownerId: userId,
+      artifactType: "launch_package_final",
+      version: finalPackageVersion,
+      content: args.finalPackage,
+      createdAt: now,
+      isFinal: true,
+    });
+    await appendRunEvent(ctx, {
+      runId: run._id,
+      ownerId: userId,
+      kind: "artifact_created",
+      stageKey: "finalized",
+      message: "Final structured launch package saved.",
+      artifactId: finalArtifactId,
+    });
 
     await ctx.db.insert("artifacts", {
       runId: run._id,
@@ -439,7 +457,7 @@ export const saveStreamResult = mutation({
       },
     });
 
-    const finalArtifactId = await ctx.db.insert("artifacts", {
+    await ctx.db.insert("artifacts", {
       runId: run._id,
       ownerId: userId,
       artifactType: "launch_package_markdown",
@@ -449,7 +467,6 @@ export const saveStreamResult = mutation({
       },
       markdown: args.synthesisMarkdown,
       createdAt: now,
-      isFinal: true,
     });
     await appendRunEvent(ctx, {
       runId: run._id,
@@ -457,7 +474,6 @@ export const saveStreamResult = mutation({
       kind: "artifact_created",
       stageKey: "finalized",
       message: "Final launch package markdown saved.",
-      artifactId: finalArtifactId,
     });
 
     if (run.currentStage) {
@@ -468,18 +484,6 @@ export const saveStreamResult = mutation({
         summary: `${run.currentStage} stage completed.`,
       });
     }
-    await startStage(ctx, {
-      runId: run._id,
-      ownerId: userId,
-      stageKey: "finalized",
-      message: "Finalization stage started.",
-    });
-    await completeLatestStage(ctx, {
-      runId: run._id,
-      ownerId: userId,
-      stageKey: "finalized",
-      summary: "Workflow finalized and persisted.",
-    });
 
     await ctx.db.patch(run._id, {
       status: "completed",
@@ -558,6 +562,10 @@ export const markFailed = mutation({
   handler: async (ctx, args) => {
     const { run, userId } = await requireOwnedRun(ctx, args.runId);
 
+    if (run.status === "completed" || run.status === "failed") {
+      return run._id;
+    }
+
     if (run.currentStage) {
       await failLatestStage(ctx, {
         runId: run._id,
@@ -594,11 +602,7 @@ export const markStopped = mutation({
     const { run, userId } = await requireOwnedRun(ctx, args.runId);
     const message = args.message ?? "Run stopped by user.";
 
-    if (
-      run.status === "completed" ||
-      run.status === "approved" ||
-      run.status === "failed"
-    ) {
+    if (run.status === "completed" || run.status === "failed") {
       return run._id;
     }
 
@@ -657,35 +661,6 @@ export const recordEvent = mutation({
       payload: args.payload,
       artifactId: args.artifactId,
     });
-  },
-});
-
-export const approve = mutation({
-  args: {
-    runId: v.id("runs"),
-  },
-  handler: async (ctx, args) => {
-    const { run, userId } = await requireOwnedRun(ctx, args.runId);
-
-    if (!run.finalArtifactId) {
-      throw new ConvexError("No final artifact to approve.");
-    }
-
-    await ctx.db.patch(run._id, {
-      status: "approved",
-      approvedAt: Date.now(),
-      updatedAt: Date.now(),
-    });
-    await appendRunEvent(ctx, {
-      runId: run._id,
-      ownerId: userId,
-      kind: "run_approved",
-      stageKey: "approval",
-      message: "Run approved by user.",
-      artifactId: run.finalArtifactId,
-    });
-
-    return run._id;
   },
 });
 

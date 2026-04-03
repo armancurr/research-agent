@@ -80,7 +80,7 @@ export function LaunchPackagePreviewCard({
       animate="visible"
     >
       <motion.div
-        className="w-full border-b border-border/40 pb-6"
+        className="w-full pb-6"
         variants={riseInItem(reduceMotion, 14)}
       >
         {showStructuredView ? (
