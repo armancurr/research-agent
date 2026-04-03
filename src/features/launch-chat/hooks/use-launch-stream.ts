@@ -68,6 +68,7 @@ export function useLaunchStream() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let sawTerminalEvent = false;
       let buffer = "";
 
       while (true) {
@@ -100,9 +101,11 @@ export function useLaunchStream() {
               setSynthesis((prev) => prev + event.data.text);
               break;
             case "done":
+              sawTerminalEvent = true;
               setPhase("done");
               break;
             case "error":
+              sawTerminalEvent = true;
               setError(event.data.message);
               setPhase("error");
               toast.error(event.data.message || "Workflow failed.");
@@ -113,6 +116,12 @@ export function useLaunchStream() {
               break;
           }
         }
+      }
+
+      if (!controller.signal.aborted && !sawTerminalEvent) {
+        throw new Error(
+          "The workflow stream ended before completion. This usually means the serverless function was terminated before the later stages finished.",
+        );
       }
 
       setPhase((current) => (current === "synthesizing" ? "done" : current));

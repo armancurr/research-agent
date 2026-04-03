@@ -30,7 +30,7 @@ import type {
 } from "@/types/launch";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 class RunStoppedError extends Error {
   constructor(message = "Run stopped by user.") {
@@ -99,6 +99,16 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
+      const heartbeatId = setInterval(() => {
+        try {
+          enqueueSse(controller, encoder, "heartbeat", {
+            timestamp: Date.now(),
+          });
+        } catch {
+          // The client may already be gone.
+        }
+      }, 15_000);
+
       try {
         logLaunchInfo("run_stream_started", { runId });
         await fetchMutation(
@@ -565,8 +575,10 @@ export async function POST(request: Request) {
           sourcesCompleted: retrievalRuns.length,
         });
         enqueueSse(controller, encoder, "done", {});
+        clearInterval(heartbeatId);
         closeStream(controller);
       } catch (err) {
+        clearInterval(heartbeatId);
         if (err instanceof RunStoppedError) {
           logLaunchInfo("run_stream_stopped", {
             durationMs: Date.now() - startedAt,
