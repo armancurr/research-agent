@@ -3,6 +3,7 @@
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ const STAGE_PREVIEW_ARTIFACTS: Record<string, string> = {
 
 export function LaunchChatScreen({ runId }: { runId: string }) {
   const router = useRouter();
+  const shouldReduceMotion = useReducedMotion();
   const typedRunId = runId as Id<"runs">;
   const runData = useQuery(api.runs.getById, { runId: typedRunId });
   const approveRun = useMutation(api.runs.approve);
@@ -180,10 +182,18 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
 
   if (runData === undefined) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <motion.div
+        className="flex min-h-screen flex-col bg-background"
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+        transition={{
+          duration: shouldReduceMotion ? 0 : 0.28,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+      >
         <AppHeader />
         <div className="flex-1" />
-      </div>
+      </motion.div>
     );
   }
 
@@ -199,7 +209,9 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
     try {
       const { runId: nextRunId } = await rerunFromRun({ runId: typedRunId });
       setIsRestartDialogOpen(false);
-      router.push(`/chat/${nextRunId}`);
+      router.push(`/chat/${nextRunId}`, {
+        transitionTypes: ["route-fade"],
+      });
     } catch (error) {
       toast.error(
         getErrorMessage(error, "Unable to restart this run right now."),
@@ -263,7 +275,15 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <motion.div
+      className="flex min-h-screen flex-col bg-background"
+      initial={shouldReduceMotion ? false : { opacity: 0 }}
+      animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.28,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
       <AlertDialog
         open={isRestartDialogOpen}
         onOpenChange={(open) => {
@@ -325,6 +345,6 @@ export function LaunchChatScreen({ runId }: { runId: string }) {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

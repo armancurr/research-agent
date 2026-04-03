@@ -2,8 +2,15 @@
 
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/shared/app-header";
 import { AppShell } from "@/components/shared/app-shell";
@@ -16,14 +23,41 @@ export function AuthScreen() {
   const router = useRouter();
   const { signIn } = useAuthActions();
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const shouldReduceMotion = useReducedMotion();
   const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const exitTimeoutRef = useRef<number | null>(null);
+
+  const navigateToStartup = useCallback(() => {
+    if (isExiting) {
+      return;
+    }
+
+    if (shouldReduceMotion) {
+      router.replace("/startup");
+      return;
+    }
+
+    setIsExiting(true);
+    exitTimeoutRef.current = window.setTimeout(() => {
+      router.replace("/startup");
+    }, 220);
+  }, [isExiting, router, shouldReduceMotion]);
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/startup", { transitionTypes: ["route-fade"] });
+      navigateToStartup();
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, navigateToStartup]);
+
+  useEffect(() => {
+    return () => {
+      if (exitTimeoutRef.current !== null) {
+        window.clearTimeout(exitTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,7 +69,7 @@ export function AuthScreen() {
       const result = await signIn("password", formData);
 
       if (result.signingIn) {
-        router.replace("/startup", { transitionTypes: ["route-fade"] });
+        navigateToStartup();
       }
     } catch (err) {
       toast.error(
@@ -53,7 +87,15 @@ export function AuthScreen() {
     "h-10 rounded-md bg-card text-[15px] placeholder:text-muted-foreground/70";
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <motion.div
+      className="flex min-h-screen flex-col bg-background text-foreground"
+      initial={false}
+      animate={{ opacity: isExiting ? 0 : 1 }}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.22,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
       <AppHeader showPrimaryNav={false} showSignOut={false} />
       <AppShell className="flex flex-1 flex-col items-center justify-center px-4 py-10">
         <div className="w-full max-w-[400px] space-y-10">
@@ -110,7 +152,7 @@ export function AuthScreen() {
               size="lg"
               className="h-10 w-full text-[15px] font-medium"
               type="submit"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting || isLoading || isExiting}
             >
               {isSubmitting
                 ? mode === "signIn"
@@ -146,6 +188,6 @@ export function AuthScreen() {
           </form>
         </div>
       </AppShell>
-    </div>
+    </motion.div>
   );
 }

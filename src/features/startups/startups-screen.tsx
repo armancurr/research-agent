@@ -10,6 +10,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { useMutation, useQuery } from "convex/react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -69,6 +70,7 @@ const STARTUP_CARD_SKELETON_KEYS = [
 ] as const;
 
 export function StartupsScreen() {
+  const shouldReduceMotion = useReducedMotion();
   const startups = useQuery(api.startups.listMine);
   const deleteStartups = useMutation(api.startups.deleteMany);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -118,7 +120,15 @@ export function StartupsScreen() {
   }
 
   return (
-    <>
+    <motion.div
+      className="min-h-screen bg-background text-foreground"
+      initial={shouldReduceMotion ? false : { opacity: 0 }}
+      animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.28,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
       <AppHeader />
       <AlertDialog
         open={isDeleteDialogOpen}
@@ -356,6 +366,7 @@ export function StartupsScreen() {
                 <Link
                   key={startup._id}
                   href={`/chat/${startup.latestRun._id}`}
+                  transitionTypes={["route-fade"]}
                   className={cardClasses}
                 >
                   {inner}
@@ -369,6 +380,6 @@ export function StartupsScreen() {
           </div>
         )}
       </AppShell>
-    </>
+    </motion.div>
   );
 }

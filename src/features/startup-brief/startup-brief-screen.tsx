@@ -27,7 +27,9 @@ export function StartupBriefScreen() {
         brief: nextBrief,
       });
       reset();
-      router.push(`/chat/${runId}`);
+      router.push(`/chat/${runId}`, {
+        transitionTypes: ["route-fade"],
+      });
     } catch (error) {
       toast.error(
         getErrorMessage(
