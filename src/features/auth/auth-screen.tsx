@@ -21,8 +21,7 @@ export function AuthScreen() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/startup");
-      router.refresh();
+      router.replace("/startup", { transitionTypes: ["route-fade"] });
     }
   }, [isAuthenticated, router]);
 
@@ -36,8 +35,7 @@ export function AuthScreen() {
       const result = await signIn("password", formData);
 
       if (result.signingIn) {
-        router.replace("/startup");
-        router.refresh();
+        router.replace("/startup", { transitionTypes: ["route-fade"] });
       }
     } catch (err) {
       toast.error(
