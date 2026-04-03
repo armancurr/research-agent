@@ -8,9 +8,9 @@ import {
   CubeIcon,
   Globe,
   GlobeSimpleIcon,
-  HourglassIcon,
   Plus,
   SignOut,
+  Timer,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -172,12 +172,6 @@ export function LandingChatHeroPreview() {
         className={cn(
           /* Taller than 16:9 so the preview has more vertical room */
           "aspect-[16/10] w-full overflow-y-auto overscroll-contain",
-          "[scrollbar-width:thin]",
-          "[scrollbar-color:rgba(255,255,255,0.12)_transparent]",
-          "[&::-webkit-scrollbar]:w-1.5",
-          "[&::-webkit-scrollbar-thumb]:rounded-full",
-          "[&::-webkit-scrollbar-thumb]:bg-white/12",
-          "[&::-webkit-scrollbar-track]:bg-transparent",
         )}
       >
         <div className="flex min-h-full min-w-0 flex-col bg-background">
@@ -304,7 +298,7 @@ export function LandingChatHeroPreview() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <HourglassIcon
+                      <Timer
                         size={16}
                         weight="fill"
                         className="shrink-0 text-[#a8cc7c]"

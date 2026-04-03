@@ -1,11 +1,7 @@
 "use client";
 
-import { GlobeSimpleIcon, HourglassIcon } from "@phosphor-icons/react";
-import { useState } from "react";
 import type { Artifact } from "@/features/launch-chat/components/artifact-row";
-import { PipelineView } from "@/features/launch-chat/components/pipeline-view";
 import { ResearchSourcesGrid } from "@/features/launch-chat/components/research-sources-grid";
-import { cn } from "@/lib/utils";
 import type { ResearchBucket } from "@/types/launch";
 
 type StageRun = {
@@ -14,38 +10,14 @@ type StageRun = {
   completedAt?: number;
   stageKey: string;
   startedAt: number;
-  status: "running" | "completed" | "failed";
+  status: "running" | "completed" | "stopped" | "failed";
   summary?: string;
 };
 
-type RunTab = "pipeline" | "sources";
-
-const tabs: Array<{
-  value: RunTab;
-  label: string;
-  icon: typeof HourglassIcon;
-  iconClassName: string;
-}> = [
-  {
-    value: "pipeline",
-    label: "Pipeline",
-    icon: HourglassIcon,
-    iconClassName: "text-[#a8cc7c]",
-  },
-  {
-    value: "sources",
-    label: "Sources",
-    icon: GlobeSimpleIcon,
-    iconClassName: "text-[#e394dc]",
-  },
-];
-
 export function LaunchRunTabs({
-  stageRuns,
   buckets,
   latestMessages,
   sourceStatuses,
-  artifacts,
 }: {
   stageRuns: StageRun[];
   buckets: Map<string, ResearchBucket>;
@@ -58,51 +30,15 @@ export function LaunchRunTabs({
   >;
   artifacts: Artifact[];
 }) {
-  const [activeTab, setActiveTab] = useState<RunTab>("pipeline");
-
   return (
     <section className="mb-6">
-      <div className="flex gap-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.value;
-
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setActiveTab(tab.value)}
-              className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                isActive
-                  ? "border-border bg-card text-foreground shadow-sm shadow-black/15"
-                  : "border-border/60 bg-background text-muted-foreground hover:bg-muted/35 hover:text-foreground/80",
-              )}
-            >
-              <Icon
-                size={16}
-                weight="fill"
-                className={cn("shrink-0", tab.iconClassName)}
-              />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-5 border-t border-border/30 pt-5">
-        {activeTab === "pipeline" ? (
-          <PipelineView stageRuns={stageRuns} artifacts={artifacts} />
-        ) : null}
-        {activeTab === "sources" ? (
-          <ResearchSourcesGrid
-            buckets={buckets}
-            latestMessages={latestMessages}
-            sourceStatuses={sourceStatuses}
-            embedded
-          />
-        ) : null}
-      </div>
+      {/* PipelineView intentionally disabled for now. */}
+      <ResearchSourcesGrid
+        buckets={buckets}
+        latestMessages={latestMessages}
+        sourceStatuses={sourceStatuses}
+        embedded
+      />
     </section>
   );
 }

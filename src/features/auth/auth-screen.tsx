@@ -2,8 +2,15 @@
 
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/shared/app-header";
 import { AppShell } from "@/components/shared/app-shell";
@@ -11,20 +18,49 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getErrorMessage } from "@/lib/get-error-message";
+import { pageReveal, riseInItem, staggerContainer } from "@/lib/motion";
 
 export function AuthScreen() {
   const router = useRouter();
   const { signIn } = useAuthActions();
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const shouldReduceMotion = useReducedMotion();
+  const reduceMotion = shouldReduceMotion ?? false;
   const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const exitTimeoutRef = useRef<number | null>(null);
+  const reveal = pageReveal(reduceMotion);
+
+  const navigateToStartup = useCallback(() => {
+    if (isExiting) {
+      return;
+    }
+
+    if (reduceMotion) {
+      router.replace("/startup");
+      return;
+    }
+
+    setIsExiting(true);
+    exitTimeoutRef.current = window.setTimeout(() => {
+      router.replace("/startup");
+    }, 220);
+  }, [isExiting, reduceMotion, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/startup");
-      router.refresh();
+      navigateToStartup();
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, navigateToStartup]);
+
+  useEffect(() => {
+    return () => {
+      if (exitTimeoutRef.current !== null) {
+        window.clearTimeout(exitTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,11 +72,15 @@ export function AuthScreen() {
       const result = await signIn("password", formData);
 
       if (result.signingIn) {
-        router.replace("/startup");
-        router.refresh();
+        navigateToStartup();
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "Unable to authenticate."));
+      toast.error(
+        getErrorMessage(
+          err,
+          "Unable to authenticate. Check your details and try again.",
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -50,11 +90,31 @@ export function AuthScreen() {
     "h-10 rounded-md bg-card text-[15px] placeholder:text-muted-foreground/70";
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <motion.div
+      className="flex min-h-screen flex-col bg-background text-foreground"
+      initial={reveal.initial}
+      animate={
+        isExiting
+          ? { opacity: 0, y: -8 }
+          : (reveal.animate ?? { opacity: 1, y: 0 })
+      }
+      transition={{
+        duration: reduceMotion ? 0 : isExiting ? 0.22 : 0.54,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
       <AppHeader showPrimaryNav={false} showSignOut={false} />
       <AppShell className="flex flex-1 flex-col items-center justify-center px-4 py-10">
-        <div className="w-full max-w-[400px] space-y-10">
-          <div className="space-y-2 text-left">
+        <motion.div
+          className="w-full max-w-[400px] space-y-10"
+          variants={staggerContainer(reduceMotion, 0.05)}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div
+            className="space-y-2 text-left"
+            variants={riseInItem(reduceMotion, 10)}
+          >
             <h1 className="text-balance text-2xl font-semibold tracking-tight text-foreground">
               {mode === "signIn"
                 ? "Welcome to Research Agent"
@@ -65,9 +125,13 @@ export function AuthScreen() {
                 ? "Structured brand research for founders."
                 : "Create your workspace."}
             </p>
-          </div>
+          </motion.div>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <motion.form
+            className="space-y-5"
+            onSubmit={handleSubmit}
+            variants={riseInItem(reduceMotion, 14)}
+          >
             <div className="space-y-2">
               <Label
                 htmlFor="email"
@@ -107,7 +171,7 @@ export function AuthScreen() {
               size="lg"
               className="h-10 w-full text-[15px] font-medium"
               type="submit"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting || isLoading || isExiting}
             >
               {isSubmitting
                 ? mode === "signIn"
@@ -140,9 +204,9 @@ export function AuthScreen() {
                 </>
               )}
             </p>
-          </form>
-        </div>
+          </motion.form>
+        </motion.div>
       </AppShell>
-    </div>
+    </motion.div>
   );
 }

@@ -32,8 +32,32 @@ import type {
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
+class RunStoppedError extends Error {
+  constructor(message = "Run stopped by user.") {
+    super(message);
+    this.name = "RunStoppedError";
+  }
+}
+
 function sseEvent(event: string, data: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
+function closeStream(controller: ReadableStreamDefaultController) {
+  try {
+    controller.close();
+  } catch {
+    // The client may already be gone.
+  }
+}
+
+function enqueueSse(
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
+  event: string,
+  data: unknown,
+) {
+  controller.enqueue(encoder.encode(sseEvent(event, data)));
 }
 
 export async function POST(request: Request) {
@@ -44,22 +68,45 @@ export async function POST(request: Request) {
     return Response.json({ error: "Missing run ID." }, { status: 400 });
   }
 
+  const typedRunId = runId;
+
   const token = await convexAuthNextjsToken();
 
   if (!token) {
     return Response.json({ error: "Not authenticated." }, { status: 401 });
   }
 
-  const runData = await fetchQuery(api.runs.getById, { runId }, { token });
+  const runData = await fetchQuery(
+    api.runs.getById,
+    { runId: typedRunId },
+    { token },
+  );
   const brief = runData.run.briefSnapshot;
   const encoder = new TextEncoder();
   const startedAt = Date.now();
+
+  async function throwIfRunStopped() {
+    const state = await fetchQuery(
+      api.runs.getExecutionState,
+      { runId: typedRunId },
+      { token },
+    );
+
+    if (state.status === "stopped") {
+      throw new RunStoppedError();
+    }
+  }
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
         logLaunchInfo("run_stream_started", { runId });
-        await fetchMutation(api.runs.markGenerating, { runId }, { token });
+        await fetchMutation(
+          api.runs.markGenerating,
+          { runId: typedRunId },
+          { token },
+        );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.recordEvent,
           {
@@ -70,6 +117,7 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         const exa = getExaClient();
         const plannedSources = buildResearchPlan(brief);
         await fetchMutation(
@@ -85,6 +133,7 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "source_retrieval" },
@@ -102,6 +151,7 @@ export async function POST(request: Request) {
         let synthesis = "";
 
         const researchPromises = plannedSources.map(async (plannedSource) => {
+          await throwIfRunStopped();
           const config = sourceConfigs.find(
             (entry) => entry.source === plannedSource.source,
           );
@@ -113,6 +163,7 @@ export async function POST(request: Request) {
           }
 
           try {
+            await throwIfRunStopped();
             await fetchMutation(
               api.runs.recordEvent,
               {
@@ -133,6 +184,7 @@ export async function POST(request: Request) {
                   exa,
                   plannedSource,
                   config.includeDomains,
+                  throwIfRunStopped,
                 ),
               label: `${plannedSource.source} retrieval`,
               maxAttempts: 2,
@@ -160,6 +212,7 @@ export async function POST(request: Request) {
                 );
               },
             });
+            await throwIfRunStopped();
             retrievalRuns.push(retrievalRun);
             await fetchMutation(
               api.runs.recordEvent,
@@ -178,10 +231,17 @@ export async function POST(request: Request) {
               },
               { token },
             );
-            controller.enqueue(
-              encoder.encode(sseEvent("research", retrievalRun.curatedBucket)),
+            await throwIfRunStopped();
+            enqueueSse(
+              controller,
+              encoder,
+              "research",
+              retrievalRun.curatedBucket,
             );
           } catch (err) {
+            if (err instanceof RunStoppedError) {
+              throw err;
+            }
             const classified = classifyLaunchError(err);
             logLaunchWarn("source_failed", {
               code: classified.code,
@@ -204,19 +264,17 @@ export async function POST(request: Request) {
               },
               { token },
             );
-            controller.enqueue(
-              encoder.encode(
-                sseEvent("research_error", {
-                  source: plannedSource.source,
-                  label: plannedSource.label,
-                  message: classified.userMessage,
-                }),
-              ),
-            );
+            enqueueSse(controller, encoder, "research_error", {
+              source: plannedSource.source,
+              label: plannedSource.label,
+              message: classified.userMessage,
+            });
           }
         });
 
         await Promise.all(researchPromises);
+
+        await throwIfRunStopped();
 
         if (retrievalRuns.length < 2) {
           throw new Error(
@@ -229,6 +287,7 @@ export async function POST(request: Request) {
           retrievalRuns,
         });
         const research = evidenceBundle.curatedResearch;
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "evidence_curation" },
@@ -245,13 +304,14 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "synthesis_agent" },
           { token },
         );
         const synthesisNotes = await withRetry({
-          fn: () => generateSynthesisNotes(brief, research),
+          fn: () => generateSynthesisNotes(brief, research, throwIfRunStopped),
           label: "synthesis notes",
           maxAttempts: 2,
           onRetry: ({ attempt, error }) => {
@@ -263,6 +323,7 @@ export async function POST(request: Request) {
             });
           },
         });
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.createArtifact,
           {
@@ -274,13 +335,20 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "hook_agent" },
           { token },
         );
         const generatedHookCandidates = await withRetry({
-          fn: () => generateHookCandidates(brief, research, synthesisNotes),
+          fn: () =>
+            generateHookCandidates(
+              brief,
+              research,
+              synthesisNotes,
+              throwIfRunStopped,
+            ),
           label: "hook candidates",
           maxAttempts: 2,
           onRetry: ({ attempt, error }) => {
@@ -292,6 +360,7 @@ export async function POST(request: Request) {
             });
           },
         });
+        await throwIfRunStopped();
         const hookSelection = await withRetry({
           fn: () =>
             selectHookCandidates(
@@ -299,10 +368,12 @@ export async function POST(request: Request) {
               research,
               synthesisNotes,
               generatedHookCandidates,
+              throwIfRunStopped,
             ),
           label: "hook selection",
           maxAttempts: 2,
         });
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.createArtifact,
           {
@@ -319,6 +390,7 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "package_draft" },
@@ -326,11 +398,16 @@ export async function POST(request: Request) {
         );
         const draftPackage = await withRetry({
           fn: () =>
-            generateDraftPackage(brief, research, {
-              hookCandidates: hookSelection.selectedHooks,
-              synthesisNotes,
-              winningHook: hookSelection.winningHook,
-            }).then(validateLaunchPackage),
+            generateDraftPackage(
+              brief,
+              research,
+              {
+                hookCandidates: hookSelection.selectedHooks,
+                synthesisNotes,
+                winningHook: hookSelection.winningHook,
+              },
+              throwIfRunStopped,
+            ).then(validateLaunchPackage),
           label: "package draft",
           maxAttempts: 2,
           onRetry: ({ attempt, error }) => {
@@ -342,6 +419,7 @@ export async function POST(request: Request) {
             });
           },
         });
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.createArtifact,
           {
@@ -353,16 +431,19 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "qa_check" },
           { token },
         );
         let qaReport = await withRetry({
-          fn: () => qaCheckPackage(brief, research, draftPackage),
+          fn: () =>
+            qaCheckPackage(brief, research, draftPackage, throwIfRunStopped),
           label: "qa check",
           maxAttempts: 2,
         });
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.createArtifact,
           {
@@ -380,6 +461,7 @@ export async function POST(request: Request) {
         let finalPackage = draftPackage;
 
         if (!qaReport.pass) {
+          await throwIfRunStopped();
           await fetchMutation(
             api.runs.updateStage,
             { runId, currentStage: "rewrite_attempt" },
@@ -392,10 +474,12 @@ export async function POST(request: Request) {
                 research,
                 draftPackage,
                 qaReport,
+                throwIfRunStopped,
               ).then(validateLaunchPackage),
             label: "rewrite attempt",
             maxAttempts: 2,
           });
+          await throwIfRunStopped();
           await fetchMutation(
             api.runs.createArtifact,
             {
@@ -407,16 +491,19 @@ export async function POST(request: Request) {
             },
             { token },
           );
+          await throwIfRunStopped();
           await fetchMutation(
             api.runs.updateStage,
             { runId, currentStage: "qa_check" },
             { token },
           );
           qaReport = await withRetry({
-            fn: () => qaCheckPackage(brief, research, finalPackage),
+            fn: () =>
+              qaCheckPackage(brief, research, finalPackage, throwIfRunStopped),
             label: "qa recheck",
             maxAttempts: 2,
           });
+          await throwIfRunStopped();
           await fetchMutation(
             api.runs.createArtifact,
             {
@@ -432,6 +519,7 @@ export async function POST(request: Request) {
           );
         }
 
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.updateStage,
           { runId, currentStage: "finalized" },
@@ -449,6 +537,7 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.createArtifact,
           {
@@ -461,18 +550,21 @@ export async function POST(request: Request) {
           },
           { token },
         );
-        controller.enqueue(encoder.encode(sseEvent("research_complete", {})));
+        await throwIfRunStopped();
+        enqueueSse(controller, encoder, "final_package", finalPackage);
+        await throwIfRunStopped();
+        enqueueSse(controller, encoder, "research_complete", {});
 
         const markdown = formatLaunchPackageMarkdown(finalPackage);
         const chunks = markdown.split(/(\n\n|\n)/).filter(Boolean);
 
         for (const chunk of chunks) {
-          controller.enqueue(
-            encoder.encode(sseEvent("token", { text: chunk })),
-          );
+          await throwIfRunStopped();
+          enqueueSse(controller, encoder, "token", { text: chunk });
           synthesis += chunk;
         }
 
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.saveStreamResult,
           {
@@ -482,6 +574,7 @@ export async function POST(request: Request) {
           },
           { token },
         );
+        await throwIfRunStopped();
         await fetchMutation(
           api.runs.recordEvent,
           {
@@ -498,9 +591,23 @@ export async function POST(request: Request) {
           runId,
           sourcesCompleted: retrievalRuns.length,
         });
-        controller.enqueue(encoder.encode(sseEvent("done", {})));
-        controller.close();
+        enqueueSse(controller, encoder, "done", {});
+        closeStream(controller);
       } catch (err) {
+        if (err instanceof RunStoppedError) {
+          logLaunchInfo("run_stream_stopped", {
+            durationMs: Date.now() - startedAt,
+            runId,
+          });
+          await fetchMutation(
+            api.runs.markStopped,
+            { runId, message: err.message },
+            { token },
+          );
+          closeStream(controller);
+          return;
+        }
+
         const classified = classifyLaunchError(err);
         logLaunchError("run_stream_failed", {
           code: classified.code,
@@ -513,15 +620,11 @@ export async function POST(request: Request) {
           { runId, message: classified.userMessage },
           { token },
         );
-        controller.enqueue(
-          encoder.encode(
-            sseEvent("error", {
-              code: classified.code,
-              message: classified.userMessage,
-            }),
-          ),
-        );
-        controller.close();
+        enqueueSse(controller, encoder, "error", {
+          code: classified.code,
+          message: classified.userMessage,
+        });
+        closeStream(controller);
       }
     },
   });

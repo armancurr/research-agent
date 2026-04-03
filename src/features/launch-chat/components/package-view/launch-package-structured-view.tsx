@@ -29,7 +29,7 @@ export function LaunchPackageStructuredView({
   }
 
   return (
-    <Card className="gap-0 overflow-hidden p-0 shadow-md shadow-black/20 ring-1 ring-foreground/8">
+    <Card className="gap-0 overflow-hidden p-0 ring-1 ring-foreground/8">
       <div className="flex justify-end border-b border-border/30 px-4 py-3">
         <button
           type="button"

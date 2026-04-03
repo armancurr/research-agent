@@ -54,6 +54,7 @@ export const sourceNameValidator = v.union(
 export const runStatusValidator = v.union(
   v.literal("queued"),
   v.literal("generating"),
+  v.literal("stopped"),
   v.literal("completed"),
   v.literal("failed"),
   v.literal("approved"),
@@ -75,18 +76,21 @@ export const artifactTypeValidator = v.union(
 export const stageRunStatusValidator = v.union(
   v.literal("running"),
   v.literal("completed"),
+  v.literal("stopped"),
   v.literal("failed"),
 );
 
 export const runEventKindValidator = v.union(
   v.literal("run_created"),
   v.literal("run_started"),
+  v.literal("run_stopped"),
   v.literal("run_completed"),
   v.literal("run_failed"),
   v.literal("run_approved"),
   v.literal("run_rerun_requested"),
   v.literal("stage_started"),
   v.literal("stage_completed"),
+  v.literal("stage_stopped"),
   v.literal("stage_failed"),
   v.literal("source_started"),
   v.literal("source_completed"),

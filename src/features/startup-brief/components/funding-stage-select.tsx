@@ -12,10 +12,11 @@ export function FundingStageSelect({
   value,
   onChange,
 }: {
-  value: string;
+  value?: string;
   onChange: (value: string) => void;
 }) {
-  const selected = value.trim() === "" ? undefined : value;
+  const normalizedValue = (value ?? "").trim();
+  const selected = normalizedValue === "" ? null : normalizedValue;
 
   return (
     <Select

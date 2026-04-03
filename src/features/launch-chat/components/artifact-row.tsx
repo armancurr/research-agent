@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { JsonArtifactView } from "@/features/launch-chat/components/json-artifact-view";
 import { LaunchMarkdownBody } from "@/features/launch-chat/components/launch-markdown";
 import { getArtifactDisplayName } from "@/features/launch-chat/utils/artifact-display-names";
@@ -21,6 +22,8 @@ export type Artifact = {
   markdown?: string;
   version: number;
 };
+
+type ArtifactRowVariant = "accordion" | "exposed";
 
 type QaArtifact = {
   pass: boolean;
@@ -288,15 +291,18 @@ export function ArtifactRow({
   artifact,
   isLive = false,
   description,
+  variant = "accordion",
 }: {
   artifact: Artifact;
   isLive?: boolean;
   description?: string;
+  variant?: ArtifactRowVariant;
 }) {
   const [open, setOpen] = useState(isLive);
   const prevIsLiveRef = useRef(isLive);
 
   useEffect(() => {
+    if (variant !== "accordion") return;
     const prev = prevIsLiveRef.current;
     prevIsLiveRef.current = isLive;
     if (isLive && !prev) {
@@ -305,7 +311,7 @@ export function ArtifactRow({
       const t = setTimeout(() => setOpen(false), 1200);
       return () => clearTimeout(t);
     }
-  }, [isLive]);
+  }, [isLive, variant]);
 
   const showMarkdown = Boolean(artifact.markdown?.trim());
   const showJson = hasRenderableJson(artifact.content);
@@ -321,6 +327,66 @@ export function ArtifactRow({
 
   const title = getArtifactDisplayName(artifact.artifactType);
   const hasDesc = Boolean(description?.trim());
+  const artifactBody = (
+    <div className="relative">
+      <ScrollArea className="h-[420px] max-h-[70vh]">
+        <div className="max-w-full space-y-4 px-4 pb-4 pt-1">
+          {showMarkdown ? (
+            <div className="overflow-hidden border-l border-border/40 pl-4">
+              <LaunchMarkdownBody markdown={artifact.markdown ?? ""} />
+            </div>
+          ) : null}
+          {hookArtifact ? <HookArtifactSummary report={hookArtifact} /> : null}
+          {qaArtifact ? <QaArtifactSummary report={qaArtifact} /> : null}
+          {showJson ? (
+            <div className="space-y-1.5">
+              {showMarkdown ? (
+                <p className="text-xs font-medium text-muted-foreground/70">
+                  Structured data
+                </p>
+              ) : qaArtifact ? (
+                <p className="text-xs font-medium text-muted-foreground/70">
+                  Raw artifact
+                </p>
+              ) : null}
+              <JsonArtifactView data={artifact.content} />
+            </div>
+          ) : null}
+          {!showMarkdown && !showJson ? (
+            <p className="text-sm text-muted-foreground/50">No content.</p>
+          ) : null}
+        </div>
+      </ScrollArea>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-background/60 to-transparent" />
+    </div>
+  );
+
+  if (variant === "exposed") {
+    return (
+      <div
+        className={cn(
+          "overflow-hidden rounded-md border border-border/30 bg-muted/[0.03]",
+          isLive && "border-border/60 ring-1 ring-border/40",
+        )}
+      >
+        <div className="flex min-w-0 items-start gap-2 px-3 py-3">
+          <span className="min-w-0 flex-1 text-sm leading-snug text-muted-foreground/70">
+            <span className="font-medium">{title}</span>
+            {hasDesc ? (
+              <>
+                <span> - </span>
+                <span>{description}</span>
+              </>
+            ) : null}
+          </span>
+          <span className="shrink-0 text-xs tabular-nums text-muted-foreground/35">
+            {formatTimestamp(artifact.createdAt)}
+          </span>
+        </div>
+        {artifactBody}
+      </div>
+    );
+  }
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -343,41 +409,7 @@ export function ArtifactRow({
           {formatTimestamp(artifact.createdAt)}
         </span>
       </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="relative">
-          <div className="max-h-[420px] overflow-y-auto">
-            <div className="max-w-full space-y-4 px-4 pb-4 pt-1">
-              {showMarkdown ? (
-                <div className="overflow-hidden border-l border-border/40 pl-4">
-                  <LaunchMarkdownBody markdown={artifact.markdown ?? ""} />
-                </div>
-              ) : null}
-              {hookArtifact ? (
-                <HookArtifactSummary report={hookArtifact} />
-              ) : null}
-              {qaArtifact ? <QaArtifactSummary report={qaArtifact} /> : null}
-              {showJson ? (
-                <div className="space-y-1.5">
-                  {showMarkdown ? (
-                    <p className="text-xs font-medium text-muted-foreground/70">
-                      Structured data
-                    </p>
-                  ) : qaArtifact ? (
-                    <p className="text-xs font-medium text-muted-foreground/70">
-                      Raw artifact
-                    </p>
-                  ) : null}
-                  <JsonArtifactView data={artifact.content} />
-                </div>
-              ) : null}
-              {!showMarkdown && !showJson ? (
-                <p className="text-sm text-muted-foreground/50">No content.</p>
-              ) : null}
-            </div>
-          </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-background/60 to-transparent" />
-        </div>
-      </CollapsibleContent>
+      <CollapsibleContent>{artifactBody}</CollapsibleContent>
     </Collapsible>
   );
 }

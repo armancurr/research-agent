@@ -182,6 +182,76 @@
   --sidebar-ring: #a277ff;
 }
 
+:root[data-app-theme="dark-magic"] {
+  --background: #eaeaff;
+  --foreground: #3e3f54;
+  --card: #f2f2ff;
+  --card-foreground: #3e3f54;
+  --popover: #f2f2ff;
+  --popover-foreground: #3e3f54;
+  --primary: #00d169;
+  --primary-foreground: #131417;
+  --secondary: #d7d7ff;
+  --secondary-foreground: #000a9f;
+  --muted: #dcdcff;
+  --muted-foreground: #5d6174;
+  --accent: #a0a0fb;
+  --accent-foreground: #000a9f;
+  --destructive: #e64343;
+  --border: #cbccef;
+  --input: #d7d7ff;
+  --ring: #00d169;
+  --chart-1: #00d169;
+  --chart-2: #ff6c00;
+  --chart-3: #9900ff;
+  --chart-4: #1b27db;
+  --chart-5: #ff006c;
+  --radius: 0.45rem;
+  --sidebar: #c6c6ff;
+  --sidebar-foreground: #000a9fdd;
+  --sidebar-primary: #00d169;
+  --sidebar-primary-foreground: #131417;
+  --sidebar-accent: #a0a0fb;
+  --sidebar-accent-foreground: #000a9f;
+  --sidebar-border: #c7c9e6;
+  --sidebar-ring: #00d169;
+}
+
+:root[data-app-theme="spacemacs"] {
+  --background: #fbf8ef;
+  --foreground: #655370;
+  --card: #f7f3ee;
+  --card-foreground: #655370;
+  --popover: #fbf8ef;
+  --popover-foreground: #655370;
+  --primary: #9380b2;
+  --primary-foreground: #fbf8ef;
+  --secondary: #efeae9;
+  --secondary-foreground: #655370;
+  --muted: #f0ece9;
+  --muted-foreground: #93889a;
+  --accent: #3a81c3;
+  --accent-foreground: #fbf8ef;
+  --destructive: #ba2f59;
+  --border: #ddd6de;
+  --input: #efeae9;
+  --ring: #9380b2;
+  --chart-1: #9380b2;
+  --chart-2: #2aa1ae;
+  --chart-3: #3a81c3;
+  --chart-4: #2d9574;
+  --chart-5: #6c3163;
+  --radius: 0.45rem;
+  --sidebar: #fbf8ef;
+  --sidebar-foreground: #655370cc;
+  --sidebar-primary: #9380b2;
+  --sidebar-primary-foreground: #fbf8ef;
+  --sidebar-accent: #efeae9;
+  --sidebar-accent-foreground: #655370;
+  --sidebar-border: #ddd6de;
+  --sidebar-ring: #9380b2;
+}
+
 :root[data-app-theme="t3"] {
   --background: #1a151f;
   --foreground: #e5e5e5;
@@ -215,6 +285,25 @@
   --sidebar-accent-foreground: #e5e5e5;
   --sidebar-border: #2b2430;
   --sidebar-ring: #e07aa4;
+}
+
+:root {
+  --scrollbar-size: 8px;
+  --scrollbar-track: color-mix(
+    in srgb,
+    var(--background) 82%,
+    var(--foreground) 18%
+  );
+  --scrollbar-thumb: color-mix(
+    in srgb,
+    var(--border) 72%,
+    var(--foreground) 28%
+  );
+  --scrollbar-thumb-hover: color-mix(
+    in srgb,
+    var(--primary) 32%,
+    var(--foreground) 22%
+  );
 }
 
 @theme inline {
@@ -263,6 +352,31 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
 }
 
 html {
@@ -422,6 +536,115 @@ textarea {
   background: transparent;
   clip-path: none;
   animation: none;
+}
+
+::view-transition-group(.route-fade) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-group(.route-chat-open) {
+  animation-duration: 740ms;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+::view-transition-old(.route-fade) {
+  animation: route-fade-out 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+::view-transition-new(.route-fade) {
+  animation: route-fade-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+::view-transition-old(.route-chat-open) {
+  animation: route-chat-old 500ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(.route-chat-open) {
+  animation: route-chat-new 780ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+@keyframes route-fade-out {
+  from {
+    opacity: 0.16;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes route-chat-old {
+  from {
+    filter: blur(0px);
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    filter: blur(10px);
+    opacity: 0;
+    transform: scale(0.986);
+  }
+}
+
+@keyframes route-chat-new {
+  from {
+    clip-path: inset(0 0 36% 0 round 16px);
+    filter: blur(14px);
+    opacity: 0;
+    transform: translateY(42px) scale(0.97);
+  }
+
+  68% {
+    clip-path: inset(0 0 0 0 round 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0 round 0);
+    filter: blur(0px);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes motion-stage-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 34%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+.timeline-stage-running {
+  animation: motion-stage-pulse 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(.route-fade),
+  ::view-transition-old(.route-fade),
+  ::view-transition-new(.route-fade),
+  ::view-transition-group(.route-chat-open),
+  ::view-transition-old(.route-chat-open),
+  ::view-transition-new(.route-chat-open) {
+    animation: none;
+  }
+
+  .timeline-stage-running {
+    animation: none;
+  }
 }
 
 @layer base {

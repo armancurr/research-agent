@@ -7,7 +7,6 @@ import {
 const isAuthRoute = createRouteMatcher(["/auth"]);
 const isLandingPage = createRouteMatcher(["/"]);
 const isProtectedRoute = createRouteMatcher([
-  "/",
   "/chat(.*)",
   "/new",
   "/startup(.*)",

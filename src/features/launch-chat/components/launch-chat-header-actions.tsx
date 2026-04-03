@@ -5,12 +5,19 @@ import {
   CheckIcon,
   Columns,
   Rows,
+  StopCircle,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverClose,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { ViewMode } from "@/features/launch-chat/hooks/use-view-mode";
 import { cn } from "@/lib/utils";
 
-function ViewModeToggle({
+function ViewModePopover({
   mode,
   onChange,
 }: {
@@ -18,36 +25,77 @@ function ViewModeToggle({
   onChange: (next: ViewMode) => void;
 }) {
   return (
-    <div className="flex h-7 items-stretch rounded-lg border border-border/60 bg-muted/25 p-0.5">
-      <button
-        type="button"
-        aria-pressed={mode === "unified"}
-        onClick={() => onChange("unified")}
-        className={cn(
-          "flex items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-all duration-150",
-          mode === "unified"
-            ? "bg-background text-foreground/90 shadow-sm shadow-black/20"
-            : "text-muted-foreground/60 hover:text-muted-foreground/80",
-        )}
+    <Popover>
+      <PopoverTrigger
+        render={<Button variant="outline" size="sm" className="gap-1.5" />}
       >
-        <Rows size={13} weight={mode === "unified" ? "fill" : "regular"} />
-        <span className="hidden sm:inline">Unified</span>
-      </button>
-      <button
-        type="button"
-        aria-pressed={mode === "split"}
-        onClick={() => onChange("split")}
-        className={cn(
-          "flex items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-all duration-150",
-          mode === "split"
-            ? "bg-background text-foreground/90 shadow-sm shadow-black/20"
-            : "text-muted-foreground/60 hover:text-muted-foreground/80",
+        {mode === "split" ? (
+          <Columns size={16} weight="fill" aria-hidden />
+        ) : (
+          <Rows size={16} weight="fill" aria-hidden />
         )}
-      >
-        <Columns size={13} weight={mode === "split" ? "fill" : "regular"} />
-        <span className="hidden sm:inline">Split</span>
-      </button>
-    </div>
+        View
+      </PopoverTrigger>
+      <PopoverContent className="w-44 p-1">
+        <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+          Layout
+        </div>
+        <div className="space-y-1">
+          <PopoverClose
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "w-full justify-between",
+                  mode === "unified" && "bg-muted text-foreground",
+                )}
+              />
+            }
+            onClick={() => onChange("unified")}
+          >
+            <span className="flex items-center gap-1.5">
+              <Rows
+                size={14}
+                weight={mode === "unified" ? "fill" : "regular"}
+              />
+              Unified
+            </span>
+            <span className="text-primary">
+              {mode === "unified" ? (
+                <CheckIcon size={14} weight="bold" />
+              ) : null}
+            </span>
+          </PopoverClose>
+          <PopoverClose
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "w-full justify-between",
+                  mode === "split" && "bg-muted text-foreground",
+                )}
+              />
+            }
+            onClick={() => onChange("split")}
+          >
+            <span className="flex items-center gap-1.5">
+              <Columns
+                size={14}
+                weight={mode === "split" ? "fill" : "regular"}
+              />
+              Split
+            </span>
+            <span className="text-primary">
+              {mode === "split" ? <CheckIcon size={14} weight="bold" /> : null}
+            </span>
+          </PopoverClose>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -56,28 +104,34 @@ export function LaunchChatHeaderActions({
   viewMode,
   onViewModeChange,
   onRerun,
+  onStop,
   onApprove,
 }: {
   runStatus: string;
   viewMode: ViewMode;
   onViewModeChange: (next: ViewMode) => void;
   onRerun: () => void;
+  onStop: () => void;
   onApprove: () => void;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
-      {runStatus !== "generating" ? (
+      <ViewModePopover mode={viewMode} onChange={onViewModeChange} />
+      {runStatus === "generating" ? (
         <Button
-          variant="outline"
+          variant="destructive"
           size="sm"
           className="gap-1.5"
-          onClick={onRerun}
+          onClick={onStop}
         >
-          <ArrowUUpLeftIcon size={16} weight="bold" aria-hidden />
-          Restart
+          <StopCircle size={16} weight="bold" aria-hidden />
+          Stop
         </Button>
       ) : null}
+      <Button variant="outline" size="sm" className="gap-1.5" onClick={onRerun}>
+        <ArrowUUpLeftIcon size={16} weight="bold" aria-hidden />
+        Restart
+      </Button>
       {runStatus === "completed" ? (
         <Button size="sm" className="gap-1.5" onClick={onApprove}>
           <CheckIcon size={16} weight="bold" aria-hidden />
