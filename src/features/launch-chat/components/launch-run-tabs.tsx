@@ -18,6 +18,7 @@ export function LaunchRunTabs({
   buckets,
   latestMessages,
   sourceStatuses,
+  sourcesSingleColumn = false,
 }: {
   stageRuns: StageRun[];
   buckets: Map<string, ResearchBucket>;
@@ -29,6 +30,7 @@ export function LaunchRunTabs({
     >
   >;
   artifacts: Artifact[];
+  sourcesSingleColumn?: boolean;
 }) {
   return (
     <section className="mb-6">
@@ -38,6 +40,7 @@ export function LaunchRunTabs({
         latestMessages={latestMessages}
         sourceStatuses={sourceStatuses}
         embedded
+        forceSingleColumn={sourcesSingleColumn}
       />
     </section>
   );

@@ -114,7 +114,9 @@ export function LaunchChatHeaderActions({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <ViewModePopover mode={viewMode} onChange={onViewModeChange} />
+      <div className="hidden sm:block">
+        <ViewModePopover mode={viewMode} onChange={onViewModeChange} />
+      </div>
       {runStatus === "generating" ? (
         <Button
           variant="destructive"

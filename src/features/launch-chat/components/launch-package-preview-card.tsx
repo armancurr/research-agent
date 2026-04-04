@@ -4,7 +4,6 @@ import { CaretDown, Clock } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { LaunchMarkdownBody } from "@/features/launch-chat/components/launch-markdown";
 import { LaunchPackageStructuredView } from "@/features/launch-chat/components/package-view/launch-package-structured-view";
 import type { StreamPhase } from "@/features/launch-chat/hooks/use-launch-stream";
@@ -173,7 +172,7 @@ export function LaunchPackagePreviewCard({
             </div>
           </motion.div>
         ) : (
-          <Card className="gap-0 overflow-hidden p-0 ring-1 ring-foreground/8">
+          <section className="overflow-hidden">
             <div className="border-b border-border/30 px-4 py-3">
               {showMarkdownPreview ? (
                 <div className="flex items-center justify-between gap-3">
@@ -241,7 +240,7 @@ export function LaunchPackagePreviewCard({
                 </div>
               )}
             </div>
-          </Card>
+          </section>
         )}
       </motion.div>
     </motion.section>

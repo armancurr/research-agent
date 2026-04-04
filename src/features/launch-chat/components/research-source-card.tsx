@@ -167,7 +167,7 @@ export function ResearchSourceCard({
       {bucket && bucket.results.length > 0 ? (
         <div
           className={cn(
-            "flex max-w-full flex-wrap gap-1.5 px-1 pb-1",
+            "flex max-w-full flex-col gap-1.5 px-1 pb-1 sm:flex-row sm:flex-wrap",
             hasFoldableDetails ? "mt-3" : "mt-2",
           )}
         >
@@ -177,7 +177,7 @@ export function ResearchSourceCard({
               href={result.url}
               target="_blank"
               rel="noreferrer"
-              className="inline-block max-w-full truncate text-xs font-medium text-foreground/75 transition-colors hover:text-foreground hover:underline"
+              className="block w-full min-w-0 break-words text-xs font-medium text-foreground/75 transition-colors hover:text-foreground hover:underline sm:inline-block sm:w-auto sm:max-w-full"
               title={result.title}
             >
               {result.title}

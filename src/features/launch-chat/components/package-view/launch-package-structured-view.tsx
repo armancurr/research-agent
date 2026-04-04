@@ -2,7 +2,6 @@
 
 import { ClipboardText } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { ContentStrategyPanel } from "@/features/launch-chat/components/package-view/content-strategy-panel";
 import { FundraisingAnglesGrid } from "@/features/launch-chat/components/package-view/fundraising-angles-grid";
 import { HookOptionsGrid } from "@/features/launch-chat/components/package-view/hook-options-grid";
@@ -29,7 +28,7 @@ export function LaunchPackageStructuredView({
   }
 
   return (
-    <Card className="gap-0 overflow-hidden p-0 ring-1 ring-foreground/8">
+    <section className="overflow-hidden">
       <div className="flex justify-end border-b border-border/30 px-4 py-3">
         <button
           type="button"
@@ -50,6 +49,6 @@ export function LaunchPackageStructuredView({
         <FundraisingAnglesGrid angles={pkg.fundraisingAngles} />
         <NextMovesTimeline moves={pkg.nextMoves} />
       </div>
-    </Card>
+    </section>
   );
 }

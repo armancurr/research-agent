@@ -22,6 +22,7 @@ export function ResearchSourcesGrid({
   latestMessages,
   sourceStatuses,
   embedded = false,
+  forceSingleColumn = false,
 }: {
   buckets: Map<string, ResearchBucket>;
   latestMessages: Partial<Record<ResearchBucket["source"], string>>;
@@ -32,6 +33,8 @@ export function ResearchSourcesGrid({
     >
   >;
   embedded?: boolean;
+  /** When true, stack source cards in one column (e.g. narrow split panes). */
+  forceSingleColumn?: boolean;
 }) {
   const [open, setOpen] = useState(true);
   const shouldReduceMotion = useReducedMotion();
@@ -39,7 +42,11 @@ export function ResearchSourcesGrid({
 
   const content = (
     <motion.div
-      className={cn("grid gap-x-6 gap-y-3 sm:grid-cols-2", !embedded && "mt-5")}
+      className={cn(
+        "grid gap-x-6 gap-y-3",
+        forceSingleColumn ? "grid-cols-1" : "sm:grid-cols-2",
+        !embedded && "mt-5",
+      )}
       variants={staggerContainer(reduceMotion, 0.04)}
       initial="hidden"
       animate="visible"
