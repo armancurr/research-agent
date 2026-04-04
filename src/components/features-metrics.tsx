@@ -13,6 +13,8 @@ import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
+
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LANDING_SECTION_MAX_WIDTH } from "@/lib/landing-layout";
 import { cn } from "@/lib/utils";
