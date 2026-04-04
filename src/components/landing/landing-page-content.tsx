@@ -11,8 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Globe } from "@/components/ui/globe";
 import { RetroGrid } from "@/components/ui/retro-grid";
 import { Ripple } from "@/components/ui/ripple";
-
-const SECTION_MAX_WIDTH = "max-w-[1450px]";
+import {
+  LANDING_CONTENT_MAX_WIDTH,
+  LANDING_SECTION_MAX_WIDTH,
+} from "@/lib/landing-layout";
 
 const PROCESS_STEPS = [
   {
@@ -194,7 +196,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
         className="relative overflow-hidden bg-background px-6 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10"
       >
         <div
-          className={`mx-auto flex min-h-[calc(100vh-3.5rem)] w-full ${SECTION_MAX_WIDTH} flex-col`}
+          className={`mx-auto flex min-h-[calc(100vh-3.5rem)] w-full ${LANDING_SECTION_MAX_WIDTH} flex-col`}
         >
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center pb-8 pt-4 text-center sm:pt-8 lg:pt-10">
             <div className="max-w-[980px]">
@@ -224,7 +226,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
 
             <div className="mt-16 flex w-full items-center justify-center lg:mt-20">
               <div
-                className={`relative w-full ${SECTION_MAX_WIDTH} max-w-full`}
+                className={`relative w-full ${LANDING_SECTION_MAX_WIDTH} max-w-full`}
               >
                 <div className="relative overflow-hidden rounded-2xl border border-white/10">
                   <div
@@ -232,7 +234,9 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
                     className="pointer-events-none absolute inset-0 bg-[url('/background.jpg')] bg-cover bg-center bg-no-repeat"
                   />
                   <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10">
-                    <div className="mx-auto w-full max-w-[min(100%,1320px)]">
+                    <div
+                      className={`mx-auto w-full ${LANDING_CONTENT_MAX_WIDTH}`}
+                    >
                       <LandingChatHeroPreview />
                     </div>
                   </div>
@@ -247,7 +251,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
         id="features"
         className="relative overflow-hidden px-6 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-32"
       >
-        <div className={`mx-auto w-full ${SECTION_MAX_WIDTH}`}>
+        <div className={`mx-auto w-full ${LANDING_SECTION_MAX_WIDTH}`}>
           <motion.div
             className="mb-16 text-center"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
@@ -264,7 +268,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
             </p>
           </motion.div>
 
-          <div className="mx-auto grid w-full max-w-[1200px] gap-6 md:grid-cols-3 lg:gap-8">
+          <div className="mx-auto grid w-full gap-6 md:grid-cols-3 lg:gap-8">
             {FEATURE_CARDS.map((card, index) => (
               <motion.div
                 key={card.id}
@@ -300,25 +304,32 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
         id="process"
         className="flex min-h-screen w-full flex-col justify-center px-6 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-32"
       >
-        <div className={`mx-auto w-full ${SECTION_MAX_WIDTH}`}>
-          <motion.h2
-            className="mx-auto mb-16 max-w-[720px] text-center text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-foreground sm:text-[2.75rem] lg:text-[3.4rem]"
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
+        <div className={`mx-auto w-full ${LANDING_SECTION_MAX_WIDTH}`}>
+          <motion.div
+            className="mb-16 text-center"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.55 }}
             transition={getTransition(0.08, 0.75)}
           >
-            A structured process founders can trust.
-          </motion.h2>
+            <h2 className="mx-auto max-w-[720px] text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-foreground sm:text-[2.75rem] lg:text-[3.4rem]">
+              A structured process founders can trust.
+            </h2>
+            <p className="mx-auto mt-6 max-w-[600px] text-base leading-7 font-medium tracking-[-0.03em] text-muted-foreground">
+              From brief to research to refinement, each stage stacks clearly so
+              your team always knows what shipped, what is running, and what
+              comes next.
+            </p>
+          </motion.div>
 
           <motion.div
-            className="relative mx-auto mb-16 flex w-full max-w-[1200px] items-end justify-center bg-transparent px-4 py-8 sm:px-8 sm:py-10"
+            className="relative mx-auto mb-16 flex w-full items-end justify-center bg-transparent py-8 sm:py-10"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.45 }}
             transition={getTransition(0.2, 0.8)}
           >
-            <div className="pointer-events-none absolute inset-x-8 bottom-8 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)]" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-8 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)]" />
             <div className="flex w-full items-end justify-between gap-1 sm:gap-1.5">
               {processColumns.map(({ id, height }, columnIndex) => (
                 <div
@@ -369,7 +380,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
             </div>
           </motion.div>
 
-          <div className="mx-auto grid w-full max-w-[1200px] gap-12 md:grid-cols-3 lg:gap-16">
+          <div className="mx-auto grid w-full gap-12 md:grid-cols-3 lg:gap-16">
             {PROCESS_STEPS.map((step, index) => (
               <motion.div
                 key={step.id}
@@ -401,7 +412,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
         transition={getTransition(0.05, 0.55)}
       >
         <div
-          className={`mx-auto flex w-full ${SECTION_MAX_WIDTH} flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between`}
+          className={`mx-auto flex w-full ${LANDING_SECTION_MAX_WIDTH} flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between`}
         >
           <p>Research Agent</p>
           <div className="flex items-center gap-4">

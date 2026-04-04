@@ -9,16 +9,20 @@ import {
   Pulse,
   Target,
 } from "@phosphor-icons/react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { LANDING_SECTION_MAX_WIDTH } from "@/lib/landing-layout";
 import { cn } from "@/lib/utils";
+
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 export default function FeaturesMetrics() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -42,12 +46,36 @@ export default function FeaturesMetrics() {
     };
   }, []);
 
+  function getHeadingTransition(delay = 0.08, duration = 0.75) {
+    if (shouldReduceMotion) {
+      return { duration: 0 };
+    }
+    return { delay, duration, ease: EASE_OUT };
+  }
+
   return (
     <section
       ref={sectionRef}
-      className="bg-zinc-50 py-16 md:py-32 dark:bg-transparent"
+      className="bg-zinc-50 px-6 py-16 sm:px-8 md:py-32 lg:px-12 dark:bg-transparent"
     >
-      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+      <div className={cn("mx-auto w-full", LANDING_SECTION_MAX_WIDTH)}>
+        <motion.div
+          className="mb-16 text-center"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.55 }}
+          transition={getHeadingTransition(0.08, 0.75)}
+        >
+          <h2 className="mx-auto max-w-[720px] text-[2.1rem] leading-[1.06] font-medium tracking-[-0.06em] text-foreground sm:text-[2.75rem] lg:text-[3.4rem]">
+            Performance you can measure.
+          </h2>
+          <p className="mx-auto mt-6 max-w-[600px] text-base leading-7 font-medium tracking-[-0.03em] text-muted-foreground">
+            Uptime, latency, and intelligence coverage at a glance—so you know
+            the system is fast, reliable, and ready when your brief turns into a
+            research run.
+          </p>
+        </motion.div>
+
         <div className="mx-auto grid gap-4 lg:grid-cols-2">
           {/* Metric Card 1 - Blue Card */}
           <motion.div
