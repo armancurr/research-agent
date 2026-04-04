@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import FeaturesMetrics from "@/components/features-metrics";
 import { LandingChatHeroPreview } from "@/components/landing/landing-chat-hero-preview";
+import { LandingFooter } from "@/components/landing/landing-footer";
 import { AppHeader } from "@/components/shared/app-header";
 import { Button } from "@/components/ui/button";
 import { Globe } from "@/components/ui/globe";
@@ -404,39 +405,7 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
         </div>
       </section>
 
-      <motion.footer
-        className="px-6 py-6 sm:px-8 lg:px-12"
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
-        whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.7 }}
-        transition={getTransition(0.05, 0.55)}
-      >
-        <div
-          className={`mx-auto flex w-full ${LANDING_SECTION_MAX_WIDTH} flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between`}
-        >
-          <p>Research Agent</p>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/new"
-              className="transition-colors hover:text-foreground"
-            >
-              New startup
-            </Link>
-            <Link
-              href="/startup"
-              className="transition-colors hover:text-foreground"
-            >
-              Startup runs
-            </Link>
-            <Link
-              href="/auth"
-              className="transition-colors hover:text-foreground"
-            >
-              Sign in
-            </Link>
-          </div>
-        </div>
-      </motion.footer>
+      <LandingFooter isAuthed={isAuthed} />
     </main>
   );
 }
