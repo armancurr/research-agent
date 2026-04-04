@@ -3,6 +3,8 @@
 import { ArrowRight } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
+
+import FeaturesMetrics from "@/components/features-metrics";
 import { LandingChatHeroPreview } from "@/components/landing/landing-chat-hero-preview";
 import { AppHeader } from "@/components/shared/app-header";
 import { Button } from "@/components/ui/button";
@@ -291,6 +293,8 @@ export function LandingPageContent({ isAuthed }: LandingPageContentProps) {
           </div>
         </div>
       </section>
+
+      <FeaturesMetrics />
 
       <section
         id="process"
